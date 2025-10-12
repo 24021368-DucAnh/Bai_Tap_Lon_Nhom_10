@@ -29,11 +29,18 @@ public class GameManager {
      * Khởi tạo tất cả các đối tượng game.
      */
     public void init() {
+        // Khởi tạo paddle
+        final int PADDLE_WIDTH = 250;
+        final int PADDLE_HEIGHT = 150;
+        final int PADDLE_OFFSET_FROM_BOTTOM = 50; // Khoảng cách với bề dưới window
+
+        double initialPaddleX = (gameWidth - PADDLE_WIDTH) / 2.0; // Căn giữa paddle
+        double initialPaddleY = gameHeight - PADDLE_HEIGHT - PADDLE_OFFSET_FROM_BOTTOM;
 
         this.paddle = new Paddle(gc,
-                (gameWidth - 150) / 2,
-                gameHeight - 50, // Căn giữa paddle
-                150, 25,
+                initialPaddleX,
+                initialPaddleY,
+                PADDLE_WIDTH, PADDLE_HEIGHT,
                 "file:src/main/java/org/example/arkanoid/assets/Paddle.png");
 
     }
