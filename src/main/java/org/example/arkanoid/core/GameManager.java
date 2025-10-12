@@ -3,24 +3,21 @@ package org.example.arkanoid.core;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
-import org.example.arkanoid.objects.Paddle;
+import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.example.arkanoid.objects.GameObject;
 
 
 public class GameManager {
-    private final GraphicsContext gc;
     private final double gameWidth;
     private final double gameHeight;
 
     private Paddle paddle;
+    private List<Brick> bricks = new ArrayList<>();
 
-
-    public GameManager(GraphicsContext gc, double gameWidth, double gameHeight) {
-        this.gc = gc;
+    public GameManager(double gameWidth, double gameHeight) {
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
     }
@@ -37,32 +34,53 @@ public class GameManager {
         double initialPaddleX = (gameWidth - PADDLE_WIDTH) / 2.0; // Căn giữa paddle
         double initialPaddleY = gameHeight - PADDLE_HEIGHT - PADDLE_OFFSET_FROM_BOTTOM;
 
-        this.paddle = new Paddle(gc,
+        this.paddle = new Paddle(
                 initialPaddleX,
                 initialPaddleY,
                 PADDLE_WIDTH, PADDLE_HEIGHT,
                 "file:src/main/java/org/example/arkanoid/assets/Paddle.png");
 
+        //brick
+        // 1. Tải tất cả hình ảnh vào bộ nhớ. Đây là bước quan trọng nhất!
+        BrickSkinRegistry.initDefaults();
+
+        // 2. Gọi StageLoader để đọc file "Stage_1.txt" và tạo các đối tượng Brick.
+        int stageToLoad = 1;
+        System.out.println("Đang tải màn chơi: " + stageToLoad);
+        this.bricks = StageLoader.loadFromIndex(stageToLoad, this.gameWidth);
+
+        if (this.bricks.isEmpty()) {
+            System.err.println("Không tải được gạch cho màn " + stageToLoad + ". Hãy kiểm tra file /resources/stages/Stage_1.txt");
+        } else {
+            System.out.println("Tải thành công " + this.bricks.size() + " viên gạch.");
+        }
     }
 
     /**
      * Cập nhật logic cho tất cả đối tượng trong game.
      */
-    public void update() {
-        paddle.update();
+    public void update(double deltaTime) {
+        paddle.update(deltaTime);
 
+
+        for (Brick brick : bricks) {
+            brick.update(deltaTime);
+        }
     }
 
     /**
      * Vẽ lại tất cả đối tượng lên màn hình.
      */
-    public void render() {
+    public void render(GraphicsContext gc) {
         // 1. Xóa toàn bộ màn hình trước khi vẽ lại
         gc.clearRect(0, 0, gameWidth, gameHeight);
 
         // 2. Vẽ paddle
-        paddle.render();
+        paddle.render(gc);
 
+        for (Brick brick : bricks) {
+            BrickPainter.draw(gc, brick);
+        }
     }
 
     /**

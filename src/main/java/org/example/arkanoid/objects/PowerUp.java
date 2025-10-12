@@ -1,5 +1,7 @@
 package org.example.arkanoid.objects;
 
+import javafx.scene.canvas.GraphicsContext;
+
 public class PowerUp extends GameObject {
     private String type;
     private int duration;
@@ -31,12 +33,12 @@ public class PowerUp extends GameObject {
     }
 
     @Override
-    public void update() {
+    public void update(double deltaTime) {
 
     }
 
     @Override
-    public void render() {
+    public void render(GraphicsContext gc) {
 
     }
 }

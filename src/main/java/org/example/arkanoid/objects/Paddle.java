@@ -12,14 +12,13 @@ public class Paddle extends MovableObject {
     //private Powerup...
     private boolean movingLeft = false;
     private boolean movingRight = false;
-    private final double initialSpeed = 3d;
+    private final double initialSpeed = 350d;
 
-    public Paddle(GraphicsContext gc,double x, double y, int width, int height, String imagepath) {
+    public Paddle(double x, double y, int width, int height, String imagepath) {
         // Paddle chỉ di chuyển theo chiều ngang => dY ban đầu là 0
         super(x, y, width, height, 0, 0);
         this.speed = initialSpeed;
-        image = new Image(imagepath);
-        this.gc = gc;
+        this.image = new Image(imagepath);
         //this.currentPowerUp = null;
         //this.powerUpDurationLeft = 0;
     }
@@ -42,7 +41,7 @@ public class Paddle extends MovableObject {
     }*/
 
     /** Di chuyen */
-    public void move() {
+    public void move(double deltaTime) {
         if (movingLeft && !movingRight) {
             moveLeft();
         } else if (!movingLeft && movingRight) {
@@ -51,7 +50,7 @@ public class Paddle extends MovableObject {
             stopMoving();
         }
         // Cập nhật vị trí
-        x += dx;
+        x += dx * deltaTime;;
         y += dy;
 
         // Giới hạn paddle trong màn hình
@@ -62,13 +61,13 @@ public class Paddle extends MovableObject {
 
 
     @Override
-    public void update() {
-        this.move();
+    public void update(double deltaTime) {
+        this.move(deltaTime);
     }
 
 
     @Override
-    public void render() {
+    public void render(GraphicsContext gc) {
         gc.drawImage(image, x, y, width, height);
     }
 

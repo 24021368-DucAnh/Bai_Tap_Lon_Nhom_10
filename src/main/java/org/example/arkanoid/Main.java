@@ -23,13 +23,13 @@ public class Main extends Application {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         // Tạo GameManager
-        GameManager gameManager = new GameManager(gc, GAME_WIDTH, GAME_HEIGHT);
+        GameManager gameManager = new GameManager(GAME_WIDTH, GAME_HEIGHT);
         gameManager.init(); // Khởi tạo các đối tượng game
 
         Pane root = new Pane(canvas);
         root.setPrefSize(GAME_WIDTH, GAME_HEIGHT);
         // "white" cho màu trắng, "black" cho màu đen
-        root.setStyle("-fx-background-color: white;");
+        root.setStyle("-fx-background-color: black;");
 
         // Tạo Scene
         Scene scene = new Scene(root);
@@ -44,7 +44,7 @@ public class Main extends Application {
         primaryStage.show();                   // Hiển thị cửa sổ
 
         //Gameloop
-        GameLoop gameLoop = new GameLoop(gameManager);
+        GameLoop gameLoop = new GameLoop(gameManager, gc);
         gameLoop.start();
         System.out.println("Ứng dụng Arkanoid đã khởi động. Game Loop đang chạy...");
 

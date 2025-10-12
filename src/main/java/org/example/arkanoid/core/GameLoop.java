@@ -9,9 +9,11 @@ public class GameLoop extends AnimationTimer {
     private long lastTime = 0;
     private int updateCount = 0;
     private final GameManager gameManager;
+    private final GraphicsContext gc;
 
-    public GameLoop(GameManager gameManager) {
+    public GameLoop(GameManager gameManager, GraphicsContext gc) {
         this.gameManager = gameManager;
+        this.gc = gc;
     }
 
     /**
@@ -28,9 +30,8 @@ public class GameLoop extends AnimationTimer {
         double deltaTime = (now - lastTime) / 1_000_000_000.0;
 
         // Cập nhật logic game
-        //gameManager.update(deltaTime);
-        gameManager.update();
-        gameManager.render();
+        gameManager.update(deltaTime);
+        gameManager.render(gc);
 
         lastTime = now;
         updateCount++;

@@ -1,5 +1,7 @@
 package org.example.arkanoid.objects;
 
+import javafx.scene.canvas.GraphicsContext;
+
 public class Ball extends MovableObject {
     // private double directionX, directionY;
     private double speed;
@@ -32,12 +34,12 @@ public class Ball extends MovableObject {
     }
 
     @Override
-    public void update() {
+    public void update(double deltaTime) {
 
     }
 
     @Override
-    public void render() {
+    public void render(GraphicsContext gc) {
 
     }
 

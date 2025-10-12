@@ -1,5 +1,7 @@
 package org.example.arkanoid.objects;
 
+import javafx.scene.canvas.GraphicsContext;
+
 public abstract class MovableObject extends GameObject {
     protected double dx;
     protected double dy;
@@ -28,10 +30,10 @@ public abstract class MovableObject extends GameObject {
     }
 
     @Override
-    public abstract void update();
+    public abstract void update(double deltaTime);
 
     @Override
-    public abstract void render();
+    public abstract void render(GraphicsContext graphicsContext);
 
     public double getDx() {
         return dx;
