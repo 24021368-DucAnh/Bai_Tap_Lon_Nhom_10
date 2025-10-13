@@ -15,6 +15,7 @@ public class GameManager {
     private final double gameHeight;
 
     private Paddle paddle;
+    private Ball ball;
     private List<Brick> bricks = new ArrayList<>();
 
     public GameManager(double gameWidth, double gameHeight) {
@@ -54,6 +55,12 @@ public class GameManager {
         } else {
             System.out.println("Tải thành công " + this.bricks.size() + " viên gạch.");
         }
+        //Ball
+        final int BALL_DIAMETER = 20;
+        double initialBallX = gameWidth / 2;
+        double initialBallY = gameHeight / 2;
+        ball = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_DIAMETER,
+                1, 1, 2, 1, 1); // dx, dy = 1; speed = 2; hướng = 1
     }
 
     /**
@@ -61,6 +68,7 @@ public class GameManager {
      */
     public void update(double deltaTime) {
         paddle.update(deltaTime);
+        ball.update(deltaTime);
 
 
         for (Brick brick : bricks) {
