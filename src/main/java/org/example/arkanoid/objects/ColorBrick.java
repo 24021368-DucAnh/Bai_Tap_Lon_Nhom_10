@@ -9,7 +9,6 @@ public final class ColorBrick extends Brick {
         this.hp = this.maxHp = 1;
         this.skinCode = Character.toLowerCase(colorCode);
 
-        // Điểm gợi ý (bám theo C++ của bạn)
         this.points = switch (this.skinCode) {
             case 'b' -> 100;  // blue
             case 'g' -> 80;
@@ -29,4 +28,6 @@ public final class ColorBrick extends Brick {
         hp--;               // 1 hit vỡ
         return isDestroyed();
     }
+
+    @Override public void update(double deltaTime){}
 }

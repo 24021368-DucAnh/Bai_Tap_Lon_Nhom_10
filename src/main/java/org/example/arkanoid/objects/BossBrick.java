@@ -15,4 +15,6 @@ public final class BossBrick extends Brick {
         hp--;
         return isDestroyed();
     }
+
+    @Override public void update(double deltaTime){}
 }

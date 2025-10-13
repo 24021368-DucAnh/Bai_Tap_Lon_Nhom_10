@@ -26,7 +26,7 @@ public class GameManager {
      * Khởi tạo tất cả các đối tượng game.
      */
     public void init() {
-        // Khởi tạo paddle
+        //---------Paddle-------------
         final int PADDLE_WIDTH = 250;
         final int PADDLE_HEIGHT = 150;
         final int PADDLE_OFFSET_FROM_BOTTOM = 50; // Khoảng cách với bề dưới window
@@ -40,11 +40,11 @@ public class GameManager {
                 PADDLE_WIDTH, PADDLE_HEIGHT,
                 "file:src/main/java/org/example/arkanoid/assets/Paddle.png");
 
-        //brick
-        // 1. Tải tất cả hình ảnh vào bộ nhớ. Đây là bước quan trọng nhất!
+        //---------Brick-------------
+        //Tải tất cả hình ảnh
         BrickSkinRegistry.initDefaults();
 
-        // 2. Gọi StageLoader để đọc file "Stage_1.txt" và tạo các đối tượng Brick.
+        //Gọi StageLoader để đọc file "Stage_1.txt" và tạo các đối tượng Brick.
         int stageToLoad = 1;
         System.out.println("Đang tải màn chơi: " + stageToLoad);
         this.bricks = StageLoader.loadFromIndex(stageToLoad, this.gameWidth);
@@ -72,12 +72,13 @@ public class GameManager {
      * Vẽ lại tất cả đối tượng lên màn hình.
      */
     public void render(GraphicsContext gc) {
-        // 1. Xóa toàn bộ màn hình trước khi vẽ lại
+        // Xóa toàn bộ màn hình trước khi vẽ lại
         gc.clearRect(0, 0, gameWidth, gameHeight);
 
-        // 2. Vẽ paddle
+        //  Vẽ paddle
         paddle.render(gc);
 
+        // Vẽ brick
         for (Brick brick : bricks) {
             BrickPainter.draw(gc, brick);
         }
