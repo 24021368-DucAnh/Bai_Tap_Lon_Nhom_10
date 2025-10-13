@@ -1,6 +1,7 @@
 package org.example.arkanoid.objects;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
 public class Ball extends MovableObject {
     // private double directionX, directionY;
@@ -21,26 +22,45 @@ public class Ball extends MovableObject {
     }
 
     public boolean checkCollision(GameObject other) {
-        return false;
+        // Check va chạm khối
+        double otherX = other.getX();
+        double otherY = other.getY();
+        int otherWidth = other.getWidth();
+        int otherHeight = other.getHeight();
+
+        boolean collisionX = x + radius > otherX && x - radius < otherX + otherWidth;
+        boolean collisionY = y + radius > otherY && y - radius < otherY + otherHeight;
+
+        return collisionX && collisionY;
     }
 
     public void bounceOff(GameObject other) {
-
+        // Dựa vào vị trí va chạm mà đảo ngược hướng
+        // Va chạm từ trái hoặc phải thì đảo hướng X
+        if (x < other.getX() || x > other.getX() + other.getWidth()) {
+            directionX = -directionX;
+        }
+        // Va chạm trên dưới thì đảo ngược Y
+        if (y < other.getY() || y > other.getY() + other.getHeight()) {
+            directionY = -directionY;
+        }
     }
 
     @Override
     public void move() {
-
+        this.x += dx * directionX * speed;
+        this.y += dy * directionY * speed;
     }
 
     @Override
     public void update(double deltaTime) {
-
+        move();
     }
 
     @Override
     public void render(GraphicsContext gc) {
-
+        gc.setFill(Color.WHITE);
+        gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
     }
 
     public double getSpeed() {
