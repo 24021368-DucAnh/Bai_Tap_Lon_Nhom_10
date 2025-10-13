@@ -4,57 +4,125 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class Ball extends MovableObject {
-    // private double directionX, directionY;
     private double speed;
-    private final double initialSpeed = 600d;
     private double radius;
     private int directionX; // -1 (trái) / 1 (phải)
     private int directionY; // -1 (lên) / 1 (xuống)
 
-    public Ball(double x, double y, int width, int height,
-                double dx, double dy, double speed,
-                int directionX, int directionY) {
-        super(x, y, width, height, dx, dy);
+    // Thêm 2 biến để biết kích thước màn hình
+    private final double gameWidth;
+    private final double gameHeight;
+
+    public Ball(double x, double y, int diameter, double speed, double gameWidth, double gameHeight) {
+        super(x, y, diameter, diameter, 0, 0);
         this.speed = speed;
-        this.directionX = directionX;
-        this.directionY = directionY;
+        this.radius = diameter / 2.0;
+        this.gameWidth = gameWidth;
+        this.gameHeight = gameHeight;
 
+        // Thiết lập hướng ban đầu (ví dụ: đi sang phải và đi lên)
+        this.directionX = 1;
+        this.directionY = -1;
     }
 
+    /**
+     * Kiểm tra va chạm hình chữ nhật giữa bóng và đối tượng khác.
+     */
     public boolean checkCollision(GameObject other) {
-        // Check va chạm khối
-        double otherX = other.getX();
-        double otherY = other.getY();
-        int otherWidth = other.getWidth();
-        int otherHeight = other.getHeight();
+        // Tọa độ các cạnh của bóng
+        double ballLeft = x - radius;
+        double ballRight = x + radius;
+        double ballTop = y - radius;
+        double ballBottom = y + radius;
 
-        boolean collisionX = x + radius > otherX && x - radius < otherX + otherWidth;
-        boolean collisionY = y + radius > otherY && y - radius < otherY + otherHeight;
+        // Tọa độ các cạnh của đối tượng kia
+        double otherLeft = other.getX();
+        double otherRight = other.getX() + other.getWidth();
+        double otherTop = other.getY();
+        double otherBottom = other.getY() + other.getHeight();
 
-        return collisionX && collisionY;
+        // Kiểm tra xem có chồng lấn không
+        return ballRight > otherLeft && ballLeft < otherRight && ballBottom > otherTop && ballTop < otherBottom;
     }
 
+    /**
+     * Logic nảy lại được cải tiến để xác định hướng nảy chính xác hơn.
+     */
     public void bounceOff(GameObject other) {
-        // Dựa vào vị trí va chạm mà đảo ngược hướng
-        // Va chạm từ trái hoặc phải thì đảo hướng X
-        if (x < other.getX() || x > other.getX() + other.getWidth()) {
-            directionX = -directionX;
-        }
-        // Va chạm trên dưới thì đảo ngược Y
-        if (y < other.getY() || y > other.getY() + other.getHeight()) {
+        double ballBottom = y + radius;
+        double ballTop = y - radius;
+        double ballLeft = x - radius;
+        double ballRight = x + radius;
+
+        double otherTop = other.getY();
+        double otherBottom = other.getY() + other.getHeight();
+        double otherLeft = other.getX();
+        double otherRight = other.getX() + other.getWidth();
+
+        // Tính toán độ chồng lấn (overlap) giữa bóng và vật thể
+        double overlapX = Math.min(ballRight, otherRight) - Math.max(ballLeft, otherLeft);
+        double overlapY = Math.min(ballBottom, otherBottom) - Math.max(ballTop, otherTop);
+
+        // Nếu độ chồng lấn theo chiều ngang lớn hơn chiều dọc, va chạm xảy ra ở mặt trên/dưới
+        if (overlapX > overlapY) {
             directionY = -directionY;
+            // Đẩy nhẹ bóng ra để tránh bị kẹt trong vật thể
+            if (y < other.getY()) { // Đập vào mặt trên của vật thể
+                y = other.getY() - radius;
+            } else { // Đập vào mặt dưới của vật thể
+                y = other.getY() + other.getHeight() + radius;
+            }
+        } else { // Ngược lại, va chạm xảy ra ở mặt trái/phải
+            directionX = -directionX;
+            // Đẩy nhẹ bóng ra để tránh bị kẹt
+            if (x < other.getX()) { // Đập vào mặt trái
+                x = other.getX() - radius;
+            } else { // Đập vào mặt phải
+                x = other.getX() + other.getWidth() + radius;
+            }
         }
     }
 
+
+    /**
+     * Hàm move() không còn cần thiết, logic được gộp vào update()
+     */
     @Override
     public void move() {
-        this.x += dx * directionX * speed;
-        this.y += dy * directionY * speed;
+        // Bỏ trống hoặc xóa bỏ hoàn toàn
     }
 
     @Override
     public void update(double deltaTime) {
-        move();
+        // Cập nhật vị trí dựa trên tốc độ, hướng và deltaTime
+        this.x += directionX * speed * deltaTime;
+        this.y += directionY * speed * deltaTime;
+
+        // Kiểm tra va chạm với biên màn hình
+        // Va chạm biên trái
+        if (x - radius < 0) {
+            x = radius;
+            directionX = -directionX;
+        }
+        // Va chạm biên phải
+        else if (x + radius > gameWidth) {
+            x = gameWidth - radius;
+            directionX = -directionX;
+        }
+
+        // Va chạm biên trên
+        if (y - radius < 0) {
+            y = radius;
+            directionY = -directionY;
+        }
+
+        // Nếu bóng rơi xuống dưới đáy màn hình (game over)
+        // Hiện tại chỉ cho nảy lại để test
+        if (y + radius > gameHeight) {
+            y = gameHeight - radius;
+            directionY = -directionY;
+            //Kết thúc game
+        }
     }
 
     @Override
@@ -63,27 +131,11 @@ public class Ball extends MovableObject {
         gc.fillOval(x - radius, y - radius, radius * 2, radius * 2);
     }
 
-    public double getSpeed() {
-        return speed;
-    }
-
-    public void setSpeed(double speed) {
-        this.speed = speed;
-    }
-
-    public int getDirectionX() {
-        return directionX;
-    }
-
-    public void setDirectionX(int directionX) {
-        this.directionX = directionX;
-    }
-
-    public int getDirectionY() {
-        return directionY;
-    }
-
-    public void setDirectionY(int directionY) {
-        this.directionY = directionY;
-    }
+    // --- Getter và Setter ---
+    public double getSpeed() { return speed; }
+    public void setSpeed(double speed) { this.speed = speed; }
+    public int getDirectionX() { return directionX; }
+    public void setDirectionX(int directionX) { this.directionX = directionX; }
+    public int getDirectionY() { return directionY; }
+    public void setDirectionY(int directionY) { this.directionY = directionY; }
 }
