@@ -16,6 +16,7 @@ public class GameLoop extends AnimationTimer {
         this.gc = gc;
     }
 
+    //
     /**
      * Mỗi lần handle được gọi, gọi update và render từ GameManager.
      */
