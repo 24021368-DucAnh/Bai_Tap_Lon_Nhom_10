@@ -25,7 +25,7 @@ public class GameManager {
 
     public void init() {
         //---------Paddle-------------
-        final int PADDLE_WIDTH = 120; // Giảm kích thước paddle một chút cho dễ chơi
+        final int PADDLE_WIDTH = 46; // Giảm kích thước paddle một chút cho dễ chơi
         final int PADDLE_HEIGHT = 20;
         final int PADDLE_OFFSET_FROM_BOTTOM = 50;
 
@@ -37,7 +37,7 @@ public class GameManager {
                 initialPaddleX,
                 initialPaddleY,
                 PADDLE_WIDTH, PADDLE_HEIGHT,
-                "file:src/main/java/org/example/arkanoid/assets/Paddle.png");
+                "file:src/main/resources/images/Paddle.png");
 
         //---------Brick-------------
         BrickSkinRegistry.initDefaults();
