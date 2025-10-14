@@ -16,7 +16,6 @@ public class GameLoop extends AnimationTimer {
         this.gc = gc;
     }
 
-    //
     /**
      * Mỗi lần handle được gọi, gọi update và render từ GameManager.
      */
@@ -35,10 +34,10 @@ public class GameLoop extends AnimationTimer {
         gameManager.render(gc);
 
         lastTime = now;
-        /*updateCount++;
+        updateCount++;
         if (updateCount % 60 == 0) {
             System.out.println("GameLoop: Cập nhật lần thứ " + updateCount + ". Thời gian trôi qua: " + deltaTime + " giây.");
-        }*/
+        }
 
     }
 }

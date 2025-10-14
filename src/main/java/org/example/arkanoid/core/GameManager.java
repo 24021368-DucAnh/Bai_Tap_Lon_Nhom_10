@@ -15,7 +15,6 @@ public class GameManager {
     private final double gameHeight;
 
     private Paddle paddle;
-    private Ball ball;
     private List<Brick> bricks = new ArrayList<>();
 
     public GameManager(double gameWidth, double gameHeight) {
@@ -27,7 +26,7 @@ public class GameManager {
      * Khởi tạo tất cả các đối tượng game.
      */
     public void init() {
-        //---------Paddle-------------
+        // Khởi tạo paddle
         final int PADDLE_WIDTH = 250;
         final int PADDLE_HEIGHT = 150;
         final int PADDLE_OFFSET_FROM_BOTTOM = 50; // Khoảng cách với bề dưới window
@@ -41,11 +40,11 @@ public class GameManager {
                 PADDLE_WIDTH, PADDLE_HEIGHT,
                 "file:src/main/java/org/example/arkanoid/assets/Paddle.png");
 
-        //---------Brick-------------
-        //Tải tất cả hình ảnh
+        //brick
+        // 1. Tải tất cả hình ảnh vào bộ nhớ. Đây là bước quan trọng nhất!
         BrickSkinRegistry.initDefaults();
 
-        //Gọi StageLoader để đọc file "Stage_1.txt" và tạo các đối tượng Brick.
+        // 2. Gọi StageLoader để đọc file "Stage_1.txt" và tạo các đối tượng Brick.
         int stageToLoad = 1;
         System.out.println("Đang tải màn chơi: " + stageToLoad);
         this.bricks = StageLoader.loadFromIndex(stageToLoad, this.gameWidth);
@@ -55,12 +54,6 @@ public class GameManager {
         } else {
             System.out.println("Tải thành công " + this.bricks.size() + " viên gạch.");
         }
-        //Ball
-        final int BALL_DIAMETER = 20;
-        double initialBallX = gameWidth / 2;
-        double initialBallY = gameHeight / 2;
-        ball = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_DIAMETER,
-                1, 1, 2, 1, 1); // dx, dy = 1; speed = 2; hướng = 1
     }
 
     /**
@@ -68,7 +61,6 @@ public class GameManager {
      */
     public void update(double deltaTime) {
         paddle.update(deltaTime);
-        ball.update(deltaTime);
 
 
         for (Brick brick : bricks) {
@@ -80,13 +72,12 @@ public class GameManager {
      * Vẽ lại tất cả đối tượng lên màn hình.
      */
     public void render(GraphicsContext gc) {
-        // Xóa toàn bộ màn hình trước khi vẽ lại
+        // 1. Xóa toàn bộ màn hình trước khi vẽ lại
         gc.clearRect(0, 0, gameWidth, gameHeight);
 
-        //  Vẽ paddle
+        // 2. Vẽ paddle
         paddle.render(gc);
 
-        // Vẽ brick
         for (Brick brick : bricks) {
             BrickPainter.draw(gc, brick);
         }

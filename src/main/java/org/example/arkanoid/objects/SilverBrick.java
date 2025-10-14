@@ -34,6 +34,4 @@ public final class SilverBrick extends Brick {
 
     /** Painter dùng để cắt frame trong sprite-strip silver. */
     public int getFrameIndex() { return frameIndex; }
-
-    @Override public void update(double deltaTime){}
 }
