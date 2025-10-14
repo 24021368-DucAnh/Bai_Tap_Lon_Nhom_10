@@ -15,6 +15,7 @@ public class GameManager {
     private final double gameHeight;
 
     private Paddle paddle;
+    private Ball ball;
     private List<Brick> bricks = new ArrayList<>();
 
     public GameManager(double gameWidth, double gameHeight) {
@@ -23,10 +24,10 @@ public class GameManager {
     }
 
     public void init() {
-        // Khởi tạo paddle
-        final int PADDLE_WIDTH = 250;
-        final int PADDLE_HEIGHT = 150;
-        final int PADDLE_OFFSET_FROM_BOTTOM = 50; // Khoảng cách với bề dưới window
+        //---------Paddle-------------
+        final int PADDLE_WIDTH = 120; // Giảm kích thước paddle một chút cho dễ chơi
+        final int PADDLE_HEIGHT = 20;
+        final int PADDLE_OFFSET_FROM_BOTTOM = 50;
 
         double initialPaddleX = (gameWidth - PADDLE_WIDTH) / 2.0;
         double initialPaddleY = gameHeight - PADDLE_HEIGHT - PADDLE_OFFSET_FROM_BOTTOM;
@@ -62,6 +63,7 @@ public class GameManager {
 
     public void update(double deltaTime) {
         paddle.update(deltaTime);
+        ball.update(deltaTime);
 
         // --- Xử lý va chạm ---
 
@@ -85,7 +87,7 @@ public class GameManager {
     }
 
     public void render(GraphicsContext gc) {
-        // 1. Xóa toàn bộ màn hình trước khi vẽ lại
+        // Xóa toàn bộ màn hình trước khi vẽ lại
         gc.clearRect(0, 0, gameWidth, gameHeight);
 
         // Vẽ paddle
