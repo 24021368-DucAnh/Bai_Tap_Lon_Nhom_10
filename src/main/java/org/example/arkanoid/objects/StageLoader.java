@@ -7,102 +7,94 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-/** Đọc ASCII map từ src/main/resources/stages/Stage_<n>.txt qua classpath (portable). */
+/**
+ * Đọc file layout màn chơi từ thư mục resources.
+ * Lớp này mô phỏng logic của code C++ mẫu: sử dụng một lưới 13 cột cố định,
+ * kích thước gạch cố định, và tự động căn giữa toàn bộ bố cục.
+ */
 public final class StageLoader {
-    private StageLoader() {}
 
+    // --- CẤU HÌNH CỐ ĐỊNH (KHÔNG THAY ĐỔI) ---
     private static final String FOLDER = "/stages/";
     private static final String PREFIX = "Stage_";
     private static final String EXT    = ".txt";
 
-    /** Ví dụ: loadFromIndex(0, 800) -> đọc /stages/Stage_0.txt */
+    // --- CÁC THAM SỐ CHUẨN CỦA GAME (BÁM THEO C++ MẪU) ---
+    // Game luôn được thiết kế trên một lưới có 13 cột.
+    private static final int GRID_COLUMNS = 13;
+    // Kích thước cố định cho mỗi viên gạch như bạn yêu cầu.
+    private static final double BRICK_WIDTH = 44;
+    private static final double BRICK_HEIGHT = 22;
+
+    /**
+     * Constructor private để ngăn việc tạo đối tượng từ lớp tiện ích này.
+     */
+    private StageLoader() {}
+
+    /**
+     * Tải một màn chơi từ file .txt dựa trên chỉ số (index).
+     * Đây là phương thức chính mà GameManager sẽ gọi.
+     * @param index Số thứ tự của màn chơi (ví dụ: 1 cho Stage_1.txt).
+     * @param canvasW Chiều rộng của khu vực game (ví dụ: 800).
+     * @return Một danh sách các đối tượng Brick đã được tạo và đặt đúng vị trí.
+     */
     public static List<Brick> loadFromIndex(int index, double canvasW) {
-        String name = PREFIX + index + EXT;
-        return loadFromResource(name, canvasW, index);
-    }
-
-    /** Ví dụ: loadFromText("Stage_0.txt", 800) — cố gắng đoán stageIndex từ tên file; nếu không đoán được, mặc định 0. */
-    public static List<Brick> loadFromText(String stageFile, double canvasW) {
-        int guessedIndex = guessIndex(stageFile); // Stage_12.txt -> 12
-        return loadFromResource(stageFile, canvasW, guessedIndex);
-    }
-
-    // -------------------- CORE LOADER --------------------
-    private static List<Brick> loadFromResource(String stageFile, double canvasW, int stageIndex) {
+        String stageFileName = PREFIX + index + EXT;
         List<Brick> bricks = new ArrayList<>();
 
-        try (InputStream is = StageLoader.class.getResourceAsStream(FOLDER + stageFile)) {
+        // Sử dụng try-with-resources để đảm bảo file được đóng đúng cách
+        try (InputStream is = StageLoader.class.getResourceAsStream(FOLDER + stageFileName)) {
+            // 1. Kiểm tra xem file có tồn tại không
             if (is == null) {
-                System.err.println("Không tìm thấy file stage trong resources" + FOLDER + stageFile);
-                return bricks;
+                System.err.println("Lỗi nghiêm trọng: Không tìm thấy file stage: " + FOLDER + stageFileName);
+                return bricks; // Trả về danh sách rỗng
             }
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
 
-                // Đọc tất cả dòng, loại bỏ CRLF và BOM nếu có
-                List<String> raw = reader.lines().map(StageLoader::cleanLine).toList();
-                if (raw.isEmpty()) return bricks;
+            // 2. Đọc tất cả các dòng từ file
+            List<String> lines = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
+                    .lines()
+                    .collect(Collectors.toList());
 
-                // Cho phép mỗi dòng dài/ngắn khác nhau -> lấy độ dài lớn nhất làm số cột
-                int rows = raw.size();
-                int cols = raw.stream().mapToInt(String::length).max().orElse(0);
-                if (cols == 0) return bricks;
+            // 3. Tính toán vị trí để căn giữa toàn bộ khối gạch
+            double totalGridLayoutWidth = GRID_COLUMNS * BRICK_WIDTH;
+            double horizontalMargin = (canvasW - totalGridLayoutWidth) / 2.0;
+            double topMargin = 60; // Khoảng cách từ đỉnh màn hình
 
-                // Layout chuẩn, có thể chỉnh nếu muốn
-                double pad = 4;
-                double top = 60;
-                double brickW = (canvasW - pad * (cols + 1)) / cols;
-                double brickH = 22;
-
-                for (int r = 0; r < rows; r++) {
-                    String line = raw.get(r);
-                    for (int c = 0; c < cols; c++) {
-                        char ch = charAtSafe(line, c);
-                        if (ch == '*' || ch == ' ' || ch == '\t' || ch == 0) continue;
-
-                        ch = Character.toLowerCase(ch); // chuẩn hoá
-                        double x = pad + c * (brickW + pad);
-                        double y = top + r * (brickH + pad);
-
-                        // → dùng Factory tạo đúng loại theo ký tự + truyền stageIndex cho SilverBrick tính HP
-                        Brick brick = BrickFactory.fromCode(ch, x, y, (int) brickW, (int) brickH, stageIndex);
-                        brick.setSkinCode(ch); // để Painter chọn sprite/màu
-                        bricks.add(brick);
+            // 4. Lặp qua từng dòng (hàng) và từng ký tự (cột) để tạo gạch
+            for (int r = 0; r < lines.size(); r++) {
+                String line = lines.get(r);
+                for (int c = 0; c < line.length(); c++) {
+                    // Nếu cột hiện tại vượt quá lưới 13 cột, bỏ qua
+                    if (c >= GRID_COLUMNS) {
+                        break;
                     }
+
+                    char brickCode = line.charAt(c);
+
+                    // Nếu ký tự là '*' hoặc ' ', đó là một ô trống, bỏ qua
+                    if (brickCode == '*' || brickCode == ' ') {
+                        continue;
+                    }
+
+                    // Tính toán vị trí chính xác của viên gạch trên màn hình
+                    double x = horizontalMargin + (c * BRICK_WIDTH);
+                    double y = topMargin + (r * BRICK_HEIGHT);
+
+                    // Dùng "nhà máy" BrickFactory để tạo ra đúng loại gạch
+                    Brick brick = BrickFactory.fromCode(brickCode, x, y, (int) BRICK_WIDTH, (int) BRICK_HEIGHT, index);
+
+                    // Gán mã skin để BrickPainter biết vẽ ảnh nào (dù không cần thiết vì Factory đã làm)
+                    brick.setSkinCode(brickCode);
+
+                    bricks.add(brick);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return bricks;
-    }
-
-    // -------------------- HELPERS --------------------
-    private static String cleanLine(String s) {
-        if (s == null) return "";
-        // bỏ CR (Windows CRLF) và BOM (nếu có)
-        String out = s.replace("\r", "");
-        if (!out.isEmpty() && out.charAt(0) == '\uFEFF') {
-            out = out.substring(1);
-        }
-        return out;
-    }
-
-    /** Lấy ký tự an toàn: nếu c >= length -> trả về 0 (coi như trống). */
-    private static char charAtSafe(String s, int c) {
-        if (s == null || c < 0 || c >= s.length()) return 0;
-        return s.charAt(c);
-    }
-
-    /** Đoán số index từ tên file kiểu Stage_12.txt. Không tìm được -> 0. */
-    private static int guessIndex(String name) {
-        try {
-            int u = name.lastIndexOf('_');
-            int dot = name.lastIndexOf('.');
-            if (u >= 0 && dot > u) {
-                return Integer.parseInt(name.substring(u + 1, dot));
-            }
-        } catch (Exception ignore) {}
-        return 0;
     }
 }

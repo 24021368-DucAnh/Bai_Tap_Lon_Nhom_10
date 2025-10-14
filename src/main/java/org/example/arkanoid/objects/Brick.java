@@ -19,8 +19,8 @@ public abstract class Brick extends GameObject {
     public abstract boolean onCollisionEnter();
 
     /** Cho hiệu ứng/animation (Gold), Silver đổi frame nếu muốn, mặc định no-op. */
-
-    public abstract void update(double dt);
+    @Override
+    public void update(double dt) {}
 
     /** Đã bị phá chưa (chỉ áp dụng cho destructible). */
     public boolean isDestroyed() {
@@ -35,6 +35,7 @@ public abstract class Brick extends GameObject {
     public char getSkinCode() { return skinCode; }
     public void setSkinCode(char c) { skinCode = Character.toLowerCase(c); }
 
+    // GameObject abstract methods: render/update ở View/Painter, model giữ nguyên
 
     @Override public void render(GraphicsContext gc) {/* drawn by BrickPainter */}
 }
