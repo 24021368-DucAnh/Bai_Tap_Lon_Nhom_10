@@ -1,44 +1,52 @@
 package org.example.arkanoid.objects;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 
-public class PowerUp extends GameObject {
-    private String type;
-    private int duration;
+/**
+ * Đại diện cho một vật phẩm Power-up đang rơi trên màn hình.
+ */
+// Sửa lại để kế thừa từ MovableObject
+public class PowerUp extends MovableObject {
 
-    public PowerUp() {
-        super();
-        this.type = "null";
-        this.duration = 0;
-    }
+    private final PowerUpType type;
 
-    public PowerUp(double x, double y, int width, int height, String type, int duration) {
-        super(x, y, width, height);
-
+    // Sửa lại constructor cho đúng
+    public PowerUp(double x, double y, int width, int height, PowerUpType type) {
+        super(x, y, width, height); // Gọi constructor của MovableObject
         this.type = type;
-        this.duration = duration;
-    }
-
-    public PowerUp(String type, int duration) {
-        this.type = type;
-        this.duration = duration;
-    }
-
-    public void applyEffect (Paddle paddle) {
-
-    }
-
-    public void removeEffect(Paddle paddle) {
-
+        this.dy = 150; // Vận tốc rơi xuống (pixels/giây)
     }
 
     @Override
-    public void update(double deltaTime) {
-
+    public void update(double dt) {
+        // Gọi phương thức move(dt) từ lớp cha để nó tự động rơi xuống
+        move(dt);
     }
 
     @Override
     public void render(GraphicsContext gc) {
+        // Vẽ màu thay thế để phân biệt
+        gc.setFill(getPowerUpColor());
+        gc.fillRect(this.x, this.y, this.width, this.height);
+        gc.setStroke(Color.WHITE);
+        gc.strokeRect(this.x, this.y, this.width, this.height);
+    }
 
+    private Color getPowerUpColor() {
+        return switch (type) {
+            case ADD_LIFE -> Color.LIGHTPINK;
+            case SLOW_BALL -> Color.LIGHTBLUE;
+            case PADDLE_GROW -> Color.LIGHTGREEN;
+            default -> Color.YELLOW; // Thêm default để tránh lỗi
+        };
+    }
+
+    public PowerUpType getType() {
+        return type;
+    }
+
+    public boolean isOffScreen(double gameHeight) {
+        return this.y > gameHeight;
     }
 }
