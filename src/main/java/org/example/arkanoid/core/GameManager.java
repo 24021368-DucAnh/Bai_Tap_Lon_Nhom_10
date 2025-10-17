@@ -17,6 +17,7 @@ public class GameManager {
     private Paddle paddle;
     private Ball ball;
     private List<Brick> bricks = new ArrayList<>();
+    private PowerUpManager powerUpManager;
 
     public GameManager(double gameWidth, double gameHeight) {
         this.gameWidth = gameWidth;
@@ -31,6 +32,8 @@ public class GameManager {
 
         double initialPaddleX = (gameWidth - PADDLE_WIDTH) / 2.0;
         double initialPaddleY = gameHeight - PADDLE_HEIGHT - PADDLE_OFFSET_FROM_BOTTOM;
+
+        this.powerUpManager = new PowerUpManager();
 
         // Hình ảnh paddle có thể cần điều chỉnh lại cho phù hợp với W/H mới
         this.paddle = new Paddle(
@@ -79,11 +82,16 @@ public class GameManager {
             Brick brick = brickIterator.next();
             if (ball.checkCollision(brick)) {
                 ball.bounceOff(brick);
+                powerUpManager.trySpawnPowerUp(brick);
                 brickIterator.remove(); // Xóa viên gạch khỏi danh sách
+
                 // TODO: Thêm điểm cho người chơi ở đây
                 break; // Chỉ xử lý va chạm với 1 viên gạch mỗi frame để tránh lỗi
             }
         }
+
+        // Cập nhật tất cả các Power-up đang rơi
+        powerUpManager.update(deltaTime, gameHeight);
     }
 
     public void render(GraphicsContext gc) {
@@ -95,6 +103,8 @@ public class GameManager {
 
         // Vẽ bóng
         ball.render(gc);
+
+        powerUpManager.render(gc);
 
         // Vẽ những viên gạch còn lại
         for (Brick brick : bricks) {
