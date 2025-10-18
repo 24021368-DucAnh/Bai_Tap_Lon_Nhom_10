@@ -91,7 +91,7 @@ public class GameManager {
         }
 
         // Cập nhật tất cả các Power-up đang rơi
-        powerUpManager.update(deltaTime, gameHeight);
+        powerUpManager.update(deltaTime, gameHeight, paddle);
     }
 
     public void render(GraphicsContext gc) {

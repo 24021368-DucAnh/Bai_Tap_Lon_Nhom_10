@@ -4,10 +4,12 @@ import javafx.scene.canvas.GraphicsContext;
 import org.example.arkanoid.objects.Brick;
 import org.example.arkanoid.objects.PowerUp;
 import org.example.arkanoid.objects.PowerUpType;
+import org.example.arkanoid.objects.Paddle;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
 
 public class PowerUpManager {
 
@@ -19,10 +21,15 @@ public class PowerUpManager {
      * @param dt Thời gian trôi qua giữa các frame.
      * @param gameHeight Chiều cao của màn hình game để kiểm tra vật phẩm có rơi ra ngoài không.
      */
-    public void update(double dt, double gameHeight) {
+    public void update(double dt, double gameHeight,Paddle paddle) {
         // Dùng Iterator để xóa phần tử một cách an toàn trong lúc lặp
         activePowerUps.removeIf(powerUp -> {
             powerUp.update(dt);
+            if (powerUp.checkCollision(paddle)) {
+                // Nếu va chạm, trả về true.
+                // `removeIf` sẽ tự động xóa power-up này khỏi danh sách.
+                return true;
+            }
             return powerUp.isOffScreen(gameHeight); // Xóa nếu rơi ra khỏi màn hình
         });
     }
