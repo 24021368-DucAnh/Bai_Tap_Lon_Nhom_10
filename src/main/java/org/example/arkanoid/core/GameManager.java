@@ -2,10 +2,17 @@ package org.example.arkanoid.core;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
+import org.example.arkanoid.UIUX.SoundEffectManager;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
 
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -13,6 +20,12 @@ import java.util.List;
 public class GameManager {
     private final double gameWidth;
     private final double gameHeight;
+
+    // Biến trạng thái để pause game
+    private boolean isPaused = false;
+
+    // Sound effect
+    private SoundEffectManager soundEffectManager;
 
     private Paddle paddle;
     private Ball ball;
@@ -24,6 +37,9 @@ public class GameManager {
     }
 
     public void init() {
+        //---------------Sound Effect----------------
+        this.soundEffectManager = new SoundEffectManager();
+
         //---------Paddle-------------
         final int PADDLE_WIDTH = 46; // Giảm kích thước paddle một chút cho dễ chơi
         final int PADDLE_HEIGHT = 20;
@@ -41,7 +57,7 @@ public class GameManager {
 
         //---------Brick-------------
         BrickSkinRegistry.initDefaults();
-        int stageToLoad = 1;
+        int stageToLoad = 13;
         System.out.println("Đang tải màn chơi: " + stageToLoad);
         this.bricks = StageLoader.loadFromIndex(stageToLoad, this.gameWidth);
 
@@ -62,6 +78,10 @@ public class GameManager {
     }
 
     public void update(double deltaTime) {
+        if (isPaused) {
+            return;
+        }
+
         paddle.update(deltaTime);
         ball.update(deltaTime);
 
@@ -70,6 +90,7 @@ public class GameManager {
         // 1. Va chạm giữa Bóng và Paddle
         if (ball.checkCollision(paddle)) {
             ball.bounceOff(paddle);
+            soundEffectManager.playHitSound();
         }
 
         // 2. Va chạm giữa Bóng và Gạch
@@ -79,6 +100,7 @@ public class GameManager {
             Brick brick = brickIterator.next();
             if (ball.checkCollision(brick)) {
                 ball.bounceOff(brick);
+                soundEffectManager.playHitSound();
                 brickIterator.remove(); // Xóa viên gạch khỏi danh sách
                 // TODO: Thêm điểm cho người chơi ở đây
                 break; // Chỉ xử lý va chạm với 1 viên gạch mỗi frame để tránh lỗi
@@ -100,16 +122,45 @@ public class GameManager {
         for (Brick brick : bricks) {
             BrickPainter.draw(gc, brick);
         }
+
+        if (isPaused) {
+            // Vẽ một lớp màu đen mờ lên trên toàn bộ màn hình
+            gc.setFill(new Color(0, 0, 0, 0.6));
+            gc.fillRect(0, 0, gameWidth, gameHeight);
+
+            // Vẽ chữ "PAUSED"
+            gc.setFill(Color.WHITE);
+            gc.setFont(Font.font("Impact", 60));
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.fillText("PAUSED", gameWidth / 2.0, gameHeight / 2.0);
+        }
     }
 
     public void handleKeyEvent(KeyEvent event) {
-        boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
         KeyCode code = event.getCode();
+
+        // Xử lý pause/unpause khi phím được NHẤN
+        if (event.getEventType() == KeyEvent.KEY_PRESSED) {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                isPaused = !isPaused; // true -> false, false -> true
+            }
+        }
+
+        // Nếu game đang bị tạm dừng, không xử lý các phím di chuyển
+        if (isPaused) {
+            return;
+        }
+
+        boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
 
         if (code == KeyCode.A || code == KeyCode.LEFT) {
             paddle.setMovingLeft(isPressed);
         } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
             paddle.setMovingRight(isPressed);
         }
+    }
+
+    public boolean isPaused() {
+        return isPaused;
     }
 }
