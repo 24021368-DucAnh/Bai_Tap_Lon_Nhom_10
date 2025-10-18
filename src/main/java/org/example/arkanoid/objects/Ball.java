@@ -1,28 +1,29 @@
 package org.example.arkanoid.objects;
 
+//Sử dụng Point2D để cải tiến sử dụng vector cho vận tốc bóng
+
+import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import org.example.arkanoid.core.GameManager;
 
 public class Ball extends MovableObject {
-    private double speed;
+    //Loại bỏ speed,directionX,directionY, đưa về dạng vector velocity chứa thông tin về hướng và tốc độ
+    private Point2D velocity;
     private double radius;
-    private int directionX; // -1 (trái) / 1 (phải)
-    private int directionY; // -1 (lên) / 1 (xuống)
 
     // Thêm 2 biến để biết kích thước màn hình
     private final double gameWidth;
     private final double gameHeight;
 
-    public Ball(double x, double y, int diameter, double speed, double gameWidth, double gameHeight) {
+    public Ball(double x, double y, int diameter, double initialSpeed, double gameWidth, double gameHeight) {
         super(x, y, diameter, diameter, 0, 0);
-        this.speed = speed;
         this.radius = diameter / 2.0;
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
 
-        // Thiết lập hướng ban đầu (ví dụ: đi sang phải và đi lên)
-        this.directionX = 1;
-        this.directionY = -1;
+        //Khởi tạo vector vận tốc
+        this.velocity = new Point2D(initialSpeed, -initialSpeed);
     }
 
     /**
@@ -35,7 +36,7 @@ public class Ball extends MovableObject {
         double ballTop = y - radius;
         double ballBottom = y + radius;
 
-        // Tọa độ các cạnh của đối tượng kia
+        // Tọa độ các cạnh của đối tượng kia, lấy lần lượt 4 góc của hình chữ nhật
         double otherLeft = other.getX();
         double otherRight = other.getX() + other.getWidth();
         double otherTop = other.getY();
@@ -46,9 +47,10 @@ public class Ball extends MovableObject {
     }
 
     /**
-     * Logic nảy lại được cải tiến để xác định hướng nảy chính xác hơn.
+     * Logic nảy lại được cải tiến để xác định hướng nảy chính xác hơn, thao tác trên velocity
      */
     public void bounceOff(GameObject other) {
+        //gốc toạ độ nằm ở góc trên bên trái của sổ, x tăng dần theo chiều ngang và y tăng dần theo chiều dọc
         double ballBottom = y + radius;
         double ballTop = y - radius;
         double ballLeft = x - radius;
@@ -59,21 +61,21 @@ public class Ball extends MovableObject {
         double otherLeft = other.getX();
         double otherRight = other.getX() + other.getWidth();
 
-        // Tính toán độ chồng lấn (overlap) giữa bóng và vật thể
+        // Tính toán độ chồng lấn (overlap) giữa bóng và vật thể bằng cách tính chiều cao, bề rộng vùng giao nhau, theo thuật toán va chạm AABB
         double overlapX = Math.min(ballRight, otherRight) - Math.max(ballLeft, otherLeft);
         double overlapY = Math.min(ballBottom, otherBottom) - Math.max(ballTop, otherTop);
 
-        // Nếu độ chồng lấn theo chiều ngang lớn hơn chiều dọc, va chạm xảy ra ở mặt trên/dưới
+        // Nếu độ chồng lấn theo chiều ngang lớn hơn chiều dọc, va chạm xảy ra ở mặt trên
         if (overlapX > overlapY) {
-            directionY = -directionY;
+            this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
             // Đẩy nhẹ bóng ra để tránh bị kẹt trong vật thể
-            if (y < other.getY()) { // Đập vào mặt trên của vật thể
+            if (y < other.getY()) {
                 y = other.getY() - radius;
             } else { // Đập vào mặt dưới của vật thể
                 y = other.getY() + other.getHeight() + radius;
             }
         } else { // Ngược lại, va chạm xảy ra ở mặt trái/phải
-            directionX = -directionX;
+            this.velocity = new Point2D(-this.velocity.getX(), this.velocity.getY());
             // Đẩy nhẹ bóng ra để tránh bị kẹt
             if (x < other.getX()) { // Đập vào mặt trái
                 x = other.getX() - radius;
@@ -89,39 +91,29 @@ public class Ball extends MovableObject {
      */
     @Override
     public void move() {
-        // Bỏ trống hoặc xóa bỏ hoàn toàn
     }
 
     @Override
     public void update(double deltaTime) {
         // Cập nhật vị trí dựa trên tốc độ, hướng và deltaTime
-        this.x += directionX * speed * deltaTime;
-        this.y += directionY * speed * deltaTime;
+        this.x += this.velocity.getX() * deltaTime;
+        this.y += this.velocity.getY() * deltaTime;
 
         // Kiểm tra va chạm với biên màn hình
-        // Va chạm biên trái
-        if (x - radius < 0) {
-            x = radius;
-            directionX = -directionX;
-        }
-        // Va chạm biên phải
-        else if (x + radius > gameWidth) {
-            x = gameWidth - radius;
-            directionX = -directionX;
+        // Va chạm biên trái hoặc phải
+        if ((x - radius < 0 && velocity.getX() < 0) || (x + radius > gameWidth && velocity.getX() > 0)) {
+            this.velocity = new Point2D(-this.velocity.getX(), this.velocity.getY());
         }
 
         // Va chạm biên trên
-        if (y - radius < 0) {
-            y = radius;
-            directionY = -directionY;
+        if (y - radius < 0 && velocity.getY() < 0) {
+            this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
         }
 
-        // Nếu bóng rơi xuống dưới đáy màn hình (game over)
-        // Hiện tại chỉ cho nảy lại để test
-        if (y + radius > gameHeight) {
+        if (y + radius > gameHeight && velocity.getY() > 0) {
+            this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
+            // Đẩy bóng lên để không bị kẹt
             y = gameHeight - radius;
-            directionY = -directionY;
-            //Kết thúc game
         }
     }
 
@@ -132,10 +124,10 @@ public class Ball extends MovableObject {
     }
 
     // --- Getter và Setter ---
-    public double getSpeed() { return speed; }
-    public void setSpeed(double speed) { this.speed = speed; }
-    public int getDirectionX() { return directionX; }
-    public void setDirectionX(int directionX) { this.directionX = directionX; }
-    public int getDirectionY() { return directionY; }
-    public void setDirectionY(int directionY) { this.directionY = directionY; }
+    public Point2D getVelocity() {
+        return velocity;
+    }
+    public void setVelocity(Point2D velocity) {
+        this.velocity = velocity;
+    }
 }
