@@ -15,8 +15,9 @@ public class Ball extends MovableObject {
     // Thêm 2 biến để biết kích thước màn hình
     private final double gameWidth;
     private final double gameHeight;
+    private final GameManager gameManager;
 
-    public Ball(double x, double y, int diameter, double initialSpeed, double gameWidth, double gameHeight) {
+    public Ball(double x, double y, int diameter, double initialSpeed, double gameWidth, double gameHeight, GameManager gameManager) {
         super(x, y, diameter, diameter, 0, 0);
         this.radius = diameter / 2.0;
         this.gameWidth = gameWidth;
@@ -24,6 +25,7 @@ public class Ball extends MovableObject {
 
         //Khởi tạo vector vận tốc
         this.velocity = new Point2D(initialSpeed, -initialSpeed);
+        this.gameManager = gameManager;
     }
 
     /**
@@ -110,10 +112,10 @@ public class Ball extends MovableObject {
             this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
         }
 
-        if (y + radius > gameHeight && velocity.getY() > 0) {
-            this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
-            // Đẩy bóng lên để không bị kẹt
-            y = gameHeight - radius;
+        //Bóng chạm đáy thì GameOver
+        if (y + radius > gameHeight) {
+            gameManager.setGameOver();
+            this.velocity = new Point2D(0,0);
         }
     }
 
