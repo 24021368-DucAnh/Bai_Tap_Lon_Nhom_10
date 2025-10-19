@@ -18,14 +18,14 @@ public class BackgroundManager {
         this.gameHeight = height;
 
         // Tải và khởi tạo Video Player
-        String videoPath = getClass().getResource("/canhnhayvina.mp4").toExternalForm();
+        String videoPath = getClass().getResource("/sound/background/canhnhayvina.mp4").toExternalForm();
         this.videoPlayer = new MediaPlayer(new Media(videoPath));
         this.videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         this.videoPlayer.setMute(true);
         this.mediaView = new MediaView(this.videoPlayer);
 
         // Tải và khởi tạo Music Player
-        String musicPath = getClass().getResource("/tamlongson.mp3").toExternalForm();
+        String musicPath = getClass().getResource("/sound/background/tamlongson.mp3").toExternalForm();
         this.musicPlayer = new MediaPlayer(new Media(musicPath));
         this.musicPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         this.musicPlayer.setVolume(0.3); //Chỉnh volume
