@@ -14,11 +14,11 @@ public class Paddle extends MovableObject {
     private boolean movingRight = false;
     private final double initialSpeed = 350d;
 
-    public Paddle(double x, double y, int width, int height, String imagepath) {
+    public Paddle(double x, double y, int width, int height, Image image) {
         // Paddle chỉ di chuyển theo chiều ngang => dY ban đầu là 0
         super(x, y, width, height, 0, 0);
         this.speed = initialSpeed;
-        this.image = new Image(imagepath);
+        this.image = image;
         //this.currentPowerUp = null;
         //this.powerUpDurationLeft = 0;
     }
