@@ -58,7 +58,11 @@ public class Paddle extends MovableObject {
         if (x + width > 800) x = 800 - width;
     }
 
-
+    public void applyPowerUp(PowerUpType powerUpType) {
+        // Phương thức này sẽ được dùng trong tương lai để kích hoạt hiệu ứng
+        // Hiện tại có thể để trống
+        System.out.println("Đã va chạm với power-up: " + powerUpType);
+    }
 
     @Override
     public void update(double deltaTime) {

@@ -29,6 +29,12 @@ public abstract class MovableObject extends GameObject {
         this.y += dy;
     }
 
+    protected void move(double dt) {
+        // Công thức di chuyển chuẩn: vị trí += vận tốc * thời gian
+        this.x += dx * dt;
+        this.y += dy * dt;
+    }
+
     @Override
     public abstract void update(double deltaTime);
 
