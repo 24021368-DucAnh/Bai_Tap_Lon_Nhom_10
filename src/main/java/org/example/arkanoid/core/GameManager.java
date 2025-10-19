@@ -2,9 +2,12 @@ package org.example.arkanoid.core;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.text.FontWeight;
+import org.example.arkanoid.UIUX.GameUI;
 import org.example.arkanoid.UIUX.SoundEffectManager;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.image.Image;
 
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
@@ -13,6 +16,7 @@ import javafx.scene.text.TextAlignment;
 
 
 import java.awt.*;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -23,6 +27,14 @@ public class GameManager {
 
     // Biến trạng thái để pause game
     private boolean isPaused = false;
+
+    //Biến tài nguyên ảnh, font
+    private static final String FONT_PATH = "/font/pixel.ttf";
+    private static final String PADDLE_IMAGE_PATH = "/images/Paddle.png";
+
+    private GameUI gameUI;
+    private Font pausedFont;
+    private Image paddleImage;
 
     // Sound effect
     private SoundEffectManager soundEffectManager;
@@ -36,28 +48,58 @@ public class GameManager {
         this.gameHeight = gameHeight;
     }
 
-    public void init() {
-        //---------------Sound Effect----------------
+    /**
+     * Tải TẤT CẢ tài nguyên (font, ảnh, âm thanh)
+     */
+    private void loadResources() {
+        // Tải Font
+        try (InputStream fontStream = getClass().getResourceAsStream(FONT_PATH)) {
+            if (fontStream == null) {
+                throw new Exception("Không tìm thấy font: " + FONT_PATH);
+            }
+            pausedFont = Font.loadFont(fontStream, 60);
+        } catch (Exception e) {
+            System.err.println("Lỗi tải font: " + e.getMessage());
+            pausedFont = Font.font("Impact", FontWeight.BOLD, 60);
+        }
+
+        // Tải ảnh Paddle
+        try (InputStream imageStream = getClass().getResourceAsStream(PADDLE_IMAGE_PATH)) {
+            if (imageStream == null) {
+                throw new Exception("Không tìm thấy ảnh: " + PADDLE_IMAGE_PATH);
+            }
+            paddleImage = new Image(imageStream);
+        } catch (Exception e) {
+            System.err.println("Lỗi tải ảnh Paddle: " + e.getMessage());
+        }
+
+        // Khởi tạo Sound Manager
         this.soundEffectManager = new SoundEffectManager();
+    }
+
+    public void init() {
+
+        //---------------Tải tài nguyên----------------
+        this.gameUI = new GameUI(gameWidth, gameHeight);
+        loadResources();
 
         //---------Paddle-------------
         final int PADDLE_WIDTH = 46; // Giảm kích thước paddle một chút cho dễ chơi
         final int PADDLE_HEIGHT = 20;
-        final int PADDLE_OFFSET_FROM_BOTTOM = 50;
+        final int PADDLE_OFFSET_FROM_BOTTOM = 100; // Cách lề dưới 1 khoảng y
 
         double initialPaddleX = (gameWidth - PADDLE_WIDTH) / 2.0;
         double initialPaddleY = gameHeight - PADDLE_HEIGHT - PADDLE_OFFSET_FROM_BOTTOM;
 
-        // Hình ảnh paddle có thể cần điều chỉnh lại cho phù hợp với W/H mới
         this.paddle = new Paddle(
                 initialPaddleX,
                 initialPaddleY,
                 PADDLE_WIDTH, PADDLE_HEIGHT,
-                "file:src/main/resources/images/Paddle.png");
+                paddleImage);
 
         //---------Brick-------------
         BrickSkinRegistry.initDefaults();
-        int stageToLoad = 13;
+        int stageToLoad = 5;
         System.out.println("Đang tải màn chơi: " + stageToLoad);
         this.bricks = StageLoader.loadFromIndex(stageToLoad, this.gameWidth);
 
@@ -87,13 +129,13 @@ public class GameManager {
 
         // --- Xử lý va chạm ---
 
-        // 1. Va chạm giữa Bóng và Paddle
+        //  Va chạm giữa Bóng và Paddle
         if (ball.checkCollision(paddle)) {
             ball.bounceOff(paddle);
             soundEffectManager.playHitSound();
         }
 
-        // 2. Va chạm giữa Bóng và Gạch
+        // Va chạm giữa Bóng và Gạch
         // Dùng Iterator để có thể xóa phần tử khỏi List một cách an toàn trong lúc lặp
         Iterator<Brick> brickIterator = bricks.iterator();
         while (brickIterator.hasNext()) {
@@ -112,6 +154,9 @@ public class GameManager {
         // Xóa toàn bộ màn hình trước khi vẽ lại
         gc.clearRect(0, 0, gameWidth, gameHeight);
 
+        // Vẽ gameUI
+        gameUI.render(gc);
+
         // Vẽ paddle
         paddle.render(gc);
 
@@ -129,9 +174,15 @@ public class GameManager {
             gc.fillRect(0, 0, gameWidth, gameHeight);
 
             // Vẽ chữ "PAUSED"
-            gc.setFill(Color.WHITE);
-            gc.setFont(Font.font("Impact", 60));
+            gc.setFont(pausedFont);
             gc.setTextAlign(TextAlignment.CENTER);
+
+            // Vẽ bóng đổ
+            gc.setFill(new Color(0, 0, 0, 0.7));
+            gc.fillText("PAUSED", gameWidth / 2.0 + 4, gameHeight / 2.0 + 4);
+
+            // Vẽ chữ
+            gc.setFill(Color.WHITE);
             gc.fillText("PAUSED", gameWidth / 2.0, gameHeight / 2.0);
         }
     }
