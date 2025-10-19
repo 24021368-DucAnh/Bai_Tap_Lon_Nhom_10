@@ -12,7 +12,7 @@ import java.io.InputStream;
 public class GameUI {
     // TÀI NGUYÊN
     private static final String FONT_PATH = "/font/pixel.ttf";
-    private static final String LIFE_ICON_PATH = "/images/heart1.png";
+    private static final String LIFE_ICON_PATH = "/images/heart.png";
 
     private Font uiFont;
     private Image lifeIcon;
