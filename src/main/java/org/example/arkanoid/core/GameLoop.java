@@ -21,6 +21,11 @@ public class GameLoop extends AnimationTimer {
      */
     @Override
     public void handle(long now) {
+        if(gameManager.isGameOver()) {
+            System.out.println("Nhận tín hiệu gameOver-->Dừng vòng lặp");
+            this.stop();
+            return;
+        }
         if (lastTime == 0) {
             lastTime = now;
             return;
