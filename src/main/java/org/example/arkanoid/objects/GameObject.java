@@ -33,6 +33,21 @@ public abstract class GameObject {
         this.height = height;
     }
 
+
+    /**
+     * Kiểm tra va chạm hình chữ nhật (AABB collision detection).
+     * @param other Đối tượng khác để kiểm tra va chạm.
+     * @return true nếu có va chạm, ngược lại là false.
+     */
+    public boolean checkCollision(GameObject other) {
+        // AABB - Axis-Aligned Bounding Box
+        return this.x < other.x + other.width &&
+                this.x + this.width > other.x &&
+                this.y < other.y + other.height &&
+                this.y + this.height > other.y;
+    }
+
+
     public abstract void update(double deltaTime);
 
     public abstract void render(GraphicsContext gc);

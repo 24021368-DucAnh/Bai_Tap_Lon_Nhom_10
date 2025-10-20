@@ -7,7 +7,7 @@ import javafx.scene.canvas.GraphicsContext;
 
 public class GameLoop extends AnimationTimer {
     private long lastTime = 0;
-    private int updateCount = 0;
+    //private int updateCount = 0;
     private final GameManager gameManager;
     private final GraphicsContext gc;
 
@@ -39,10 +39,10 @@ public class GameLoop extends AnimationTimer {
         gameManager.render(gc);
 
         lastTime = now;
-        updateCount++;
+        /*updateCount++;
         if (updateCount % 60 == 0) {
             System.out.println("GameLoop: Cập nhật lần thứ " + updateCount + ". Thời gian trôi qua: " + deltaTime + " giây.");
-        }
+        }*/
 
     }
 }
