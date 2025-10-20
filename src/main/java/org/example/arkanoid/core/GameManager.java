@@ -35,7 +35,7 @@ public class GameManager {
     private static final String PADDLE_IMAGE_PATH = "/images/Paddle.png";
 
     private GameUI gameUI;
-    private Font pausedFont;
+    private Font textFont;
     private Image paddleImage;
 
     // Sound effect
@@ -61,10 +61,10 @@ public class GameManager {
             if (fontStream == null) {
                 throw new Exception("Không tìm thấy font: " + FONT_PATH);
             }
-            pausedFont = Font.loadFont(fontStream, 60);
+            textFont = Font.loadFont(fontStream, 60);
         } catch (Exception e) {
             System.err.println("Lỗi tải font: " + e.getMessage());
-            pausedFont = Font.font("Impact", FontWeight.BOLD, 60);
+            textFont = Font.font("Impact", FontWeight.BOLD, 60);
         }
 
         // Tải ảnh Paddle
@@ -182,16 +182,17 @@ public class GameManager {
         //In gameOver
         if (isGameOver) {
             gc.setFill(Color.RED);
-            gc.setFont(new Font("Arial", 50));
-            double textWidth = 270;
-            gc.fillText("Game Over", (gameWidth - textWidth) / 2, gameHeight / 2);
-        // Vẽ gameUI
-        gameUI.render(gc);
+            gc.setFont(textFont);
 
-        // Vẽ paddle
-        paddle.render(gc);
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.fillText("Game Over", gameWidth / 2.0, gameHeight / 2.0);
+            gc.setTextAlign(TextAlignment.LEFT);
+
 
         } else {
+
+            // Vẽ gameUI
+            gameUI.render(gc);
 
             // Vẽ paddle
             paddle.render(gc);
@@ -213,7 +214,7 @@ public class GameManager {
             gc.fillRect(0, 0, gameWidth, gameHeight);
 
             // Vẽ chữ "PAUSED"
-            gc.setFont(pausedFont);
+            gc.setFont(textFont);
             gc.setTextAlign(TextAlignment.CENTER);
 
             // Vẽ bóng đổ
