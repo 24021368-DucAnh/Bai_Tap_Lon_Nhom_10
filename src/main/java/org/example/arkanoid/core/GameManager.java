@@ -7,6 +7,8 @@ import org.example.arkanoid.UIUX.GameUI;
 import org.example.arkanoid.UIUX.SoundEffectManager;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.scene.image.Image;
 
 import javafx.scene.text.Font;
@@ -43,6 +45,7 @@ public class GameManager {
     private Ball ball;
     private List<Brick> bricks = new ArrayList<>();
     private PowerUpManager powerUpManager;
+    private boolean isGameOver = false;
 
     public GameManager(double gameWidth, double gameHeight) {
         this.gameWidth = gameWidth;
@@ -115,15 +118,28 @@ public class GameManager {
 
         //---------Ball-------------
         final int BALL_DIAMETER = 20;
-        final double BALL_SPEED = 350.0; // Tốc độ hợp lý hơn (pixels / giây)
+        final double BALL_SPEED = 200; // Tốc độ hợp lý hơn (pixels / giây)
         double initialBallX = gameWidth / 2;
         double initialBallY = gameHeight / 2;
 
         // Gọi constructor mới của Ball
-        ball = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight);
+        ball = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this);
     }
 
+    //setGameOver
+    public boolean isGameOver() {
+        return this.isGameOver;
+    }
+    public void setGameOver() {
+        this.isGameOver = true;
+        System.out.println("Đã chuyển sang trại thái GameOver !");
+    }
     public void update(double deltaTime) {
+
+        //Check nếu gameOver thì không update gì nữa
+        if (isGameOver) {
+            return;
+        }
         if (isPaused) {
             return;
         }
@@ -163,20 +179,32 @@ public class GameManager {
         // Xóa toàn bộ màn hình trước khi vẽ lại
         gc.clearRect(0, 0, gameWidth, gameHeight);
 
+        //In gameOver
+        if (isGameOver) {
+            gc.setFill(Color.RED);
+            gc.setFont(new Font("Arial", 50));
+            double textWidth = 270;
+            gc.fillText("Game Over", (gameWidth - textWidth) / 2, gameHeight / 2);
         // Vẽ gameUI
         gameUI.render(gc);
 
         // Vẽ paddle
         paddle.render(gc);
 
-        // Vẽ bóng
-        ball.render(gc);
+        } else {
 
-        powerUpManager.render(gc);
+            // Vẽ paddle
+            paddle.render(gc);
 
-        // Vẽ những viên gạch còn lại
-        for (Brick brick : bricks) {
-            BrickPainter.draw(gc, brick);
+            // Vẽ bóng
+            ball.render(gc);
+
+            powerUpManager.render(gc);
+
+            // Vẽ những viên gạch còn lại
+            for (Brick brick : bricks) {
+                BrickPainter.draw(gc, brick);
+            }
         }
 
         if (isPaused) {
