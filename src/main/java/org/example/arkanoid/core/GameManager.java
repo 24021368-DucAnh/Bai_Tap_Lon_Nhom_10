@@ -2,20 +2,16 @@ package org.example.arkanoid.core;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.text.FontWeight;
 import org.example.arkanoid.UIUX.GameUI;
 import org.example.arkanoid.UIUX.SoundEffectManager;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
+
 import javafx.scene.paint.Color;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Font;
 import javafx.scene.image.Image;
-
-import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
-import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
-
 
 import java.awt.*;
 import java.io.InputStream;
@@ -33,10 +29,13 @@ public class GameManager {
     //Biến tài nguyên ảnh, font
     private static final String FONT_PATH = "/font/pixel.ttf";
     private static final String PADDLE_IMAGE_PATH = "/images/Paddle.png";
+    private static final String LIFE_ICON_PATH = "/images/heart.png";
 
     private GameUI gameUI;
     private Font textFont;
+    private Font uiFont;
     private Image paddleImage;
+    private Image lifeIcon;
 
     // Sound effect
     private SoundEffectManager soundEffectManager;
@@ -67,6 +66,15 @@ public class GameManager {
             textFont = Font.font("Impact", FontWeight.BOLD, 60);
         }
 
+        // Tải Font UI
+        try (InputStream fontStream = getClass().getResourceAsStream(FONT_PATH)) {
+            if (fontStream == null) throw new Exception("Không tìm thấy font: " + FONT_PATH);
+            uiFont = Font.loadFont(fontStream, 24); // Cỡ chữ 24
+        } catch (Exception e) {
+            System.err.println("Lỗi tải font UI: " + e.getMessage());
+            uiFont = Font.font("Arial", FontWeight.BOLD, 24);
+        }
+
         // Tải ảnh Paddle
         try (InputStream imageStream = getClass().getResourceAsStream(PADDLE_IMAGE_PATH)) {
             if (imageStream == null) {
@@ -77,6 +85,17 @@ public class GameManager {
             System.err.println("Lỗi tải ảnh Paddle: " + e.getMessage());
         }
 
+        // Tải ảnh Máu
+        try (InputStream imageStream = getClass().getResourceAsStream(LIFE_ICON_PATH)) {
+            if (imageStream == null) throw new Exception("Không tìm thấy ảnh: " + LIFE_ICON_PATH);
+            double iconWidth = 40;
+            double iconHeight = 40;
+            lifeIcon = new Image(imageStream, iconWidth, iconHeight, true, true);
+        } catch (Exception e) {
+            System.err.println("Lỗi tải ảnh Máu: " + e.getMessage() + ". Sẽ dùng text thay thế.");
+            lifeIcon = null;
+        }
+
         // Khởi tạo Sound Manager
         this.soundEffectManager = new SoundEffectManager();
     }
@@ -84,8 +103,8 @@ public class GameManager {
     public void init() {
 
         //---------------Tải tài nguyên----------------
-        this.gameUI = new GameUI(gameWidth, gameHeight);
         loadResources();
+        this.gameUI = new GameUI(gameWidth, gameHeight, uiFont, lifeIcon);
 
         //---------Paddle-------------
         final int PADDLE_WIDTH = 46; // Giảm kích thước paddle một chút cho dễ chơi
@@ -181,6 +200,10 @@ public class GameManager {
 
         //In gameOver
         if (isGameOver) {
+            // Vẽ một lớp màu đen mờ lên trên toàn bộ màn hình
+            gc.setFill(new Color(0, 0, 0, 0.6));
+            gc.fillRect(0, 0, gameWidth, gameHeight);
+
             gc.setFill(Color.RED);
             gc.setFont(textFont);
 
