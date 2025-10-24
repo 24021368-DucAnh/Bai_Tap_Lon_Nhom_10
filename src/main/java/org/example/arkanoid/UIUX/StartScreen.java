@@ -65,7 +65,7 @@ public class StartScreen {
     }
 
     /**
-     * Hàm tiện ích để tạo một Button với style chung
+     * Tạo Button
      */
     private Button createStyledButton(String text) {
         Button button = new Button(text);

@@ -1,14 +1,11 @@
 package org.example.arkanoid.UIUX;
 
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import org.example.arkanoid.core.ResourceManager;
 
 public class GameUI {
-    private Font uiFont;
-    private Image lifeIcon;
     private double iconWidth = 40;
     private double iconHeight = 40;
 
@@ -22,13 +19,11 @@ public class GameUI {
     private final double margin = 15.0; // Khoảng cách lề
     private final double bottomPadding = 15.0; // Khoảng cách lề dưới
 
-    public GameUI(double gameWidth, double gameHeight, Font uiFont, Image lifeIcon) {
+    public GameUI(double gameWidth, double gameHeight) {
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
         this.score = 0;
         this.lives = 3; // Mặc định
-        this.uiFont = uiFont;
-        this.lifeIcon = lifeIcon;
     }
 
     public void addScore(int points) {
@@ -51,6 +46,10 @@ public class GameUI {
         }
     }
 
+    public int getScore() {
+        return this.score;
+    }
+
     public void render(GraphicsContext gc) {
 
         // Vị trí Y cách ở dưới bottomPadding
@@ -58,10 +57,10 @@ public class GameUI {
 
         // Vẽ Máu (Góc dưới bên trái)
         double xIconPos = gameWidth - margin;
-        gc.setFont(uiFont);
+        gc.setFont(ResourceManager.uiFont);
         gc.setTextAlign(TextAlignment.RIGHT);
 
-        if (lifeIcon != null) {
+        if (ResourceManager.lifeIcon != null) {
             // Vẽ bằng ảnh
             double spacing = 5; // 5px giữa các icon
             // Căn icon nằm ngay trên baseline của text
@@ -69,7 +68,7 @@ public class GameUI {
 
             for (int i = 0; i < lives; i++) {
                 double iconX = xIconPos - (i + 1) * iconWidth - i * spacing;
-                gc.drawImage(lifeIcon, iconX, iconY);
+                gc.drawImage(ResourceManager.lifeIcon, iconX, iconY);
             }
         } else {
             // Dự phòng
