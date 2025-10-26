@@ -88,7 +88,9 @@ public class Paddle extends MovableObject {
 
             case ADD_LIFE:
                 // **GỌI HÀM CỦA GAMEMANAGER**
-                gameManager.addHP(); // Sửa từ mainBall.addHP()
+                if(gameManager.getHp() < 3) {
+                    gameManager.addHP();
+                }
                 break;
         }
     }
