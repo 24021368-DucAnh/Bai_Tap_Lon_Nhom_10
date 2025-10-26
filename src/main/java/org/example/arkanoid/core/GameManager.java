@@ -26,7 +26,7 @@ import java.util.List;
 public class GameManager {
     private final double gameWidth;
     private final double gameHeight;
-
+    private int HP = 3;
     // Biến trạng thái để pause game
     private boolean isPaused = false;
 
@@ -42,7 +42,7 @@ public class GameManager {
     private SoundEffectManager soundEffectManager;
 
     private Paddle paddle;
-    private Ball ball;
+    private List<Ball> balls = new ArrayList<>();
     private List<Brick> bricks = new ArrayList<>();
     private PowerUpManager powerUpManager;
     private boolean isGameOver = false;
@@ -96,13 +96,15 @@ public class GameManager {
         double initialPaddleY = gameHeight - PADDLE_HEIGHT - PADDLE_OFFSET_FROM_BOTTOM;
 
         this.powerUpManager = new PowerUpManager();
-
+        respawnBall();
         // Hình ảnh paddle có thể cần điều chỉnh lại cho phù hợp với W/H mới
         this.paddle = new Paddle(
                 initialPaddleX,
                 initialPaddleY,
                 PADDLE_WIDTH, PADDLE_HEIGHT,
-                paddleImage);
+                paddleImage,
+                this
+        );
 
         //---------Brick-------------
         BrickSkinRegistry.initDefaults();
@@ -122,8 +124,7 @@ public class GameManager {
         double initialBallX = gameWidth / 2;
         double initialBallY = gameHeight / 2;
 
-        // Gọi constructor mới của Ball
-        ball = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this);
+
     }
 
     //setGameOver
@@ -134,6 +135,34 @@ public class GameManager {
         this.isGameOver = true;
         System.out.println("Đã chuyển sang trại thái GameOver !");
     }
+
+    public void addHP() {
+        this.HP++;
+        System.out.println("Đã cộng 1 mạng! Mạng hiện tại: " + this.HP);
+    }
+
+
+    public int getHp() {
+        return this.HP;
+    }
+    public void addBall() {
+        // Tạo bóng mới ở ngay trên paddle
+        double newBallX = paddle.getX() + (paddle.getWidth() / 2.0);
+        double newBallY = paddle.getY() - 20; // Hơi cao hơn paddle
+
+
+        Ball newBall = new Ball(newBallX, newBallY, 20, 250.0, gameWidth, gameHeight, this);
+        this.balls.add(newBall);
+    }
+
+
+    private void respawnBall() {
+        double initialBallX = gameWidth / 2.0;
+        double initialBallY = gameHeight / 2.0;
+        Ball ball = new Ball(initialBallX, initialBallY, 20, 250.0, gameWidth, gameHeight, this);
+        this.balls.add(ball);
+    }
+
     public void update(double deltaTime) {
 
         //Check nếu gameOver thì không update gì nữa
@@ -145,31 +174,52 @@ public class GameManager {
         }
 
         paddle.update(deltaTime);
-        ball.update(deltaTime);
+        // Dùng Iterator để có thể xóa bóng khi nó rơi ra ngoài
+        Iterator<Ball> ballIterator = balls.iterator();
+        while (ballIterator.hasNext()) {
+            Ball ball = ballIterator.next();
+            ball.update(deltaTime);
 
-        // --- Xử lý va chạm ---
 
-        //  Va chạm giữa Bóng và Paddle
-        if (ball.checkCollision(paddle)) {
-            ball.bounceOff(paddle);
-            soundEffectManager.playHitSound();
+            // 1. Va chạm Bóng và Paddle
+            if (ball.checkCollision(paddle)) {
+                ball.bounceOff(paddle);
+            }
+
+
+            // 2. Va chạm Bóng và Gạch
+            Iterator<Brick> brickIterator = bricks.iterator();
+            while (brickIterator.hasNext()) {
+                Brick brick = brickIterator.next();
+                if (ball.checkCollision(brick)) {
+                    ball.bounceOff(brick);
+                    powerUpManager.trySpawnPowerUp(brick);
+                    brickIterator.remove();
+                    break;
+                }
+            }
+            // 3. Xử lý bóng rơi ra ngoài
+            if (ball.getY() - ball.getRadius() > gameHeight) {
+                ballIterator.remove(); // Xóa bóng này khỏi danh sách
+                System.out.println("Một quả bóng đã rơi ra ngoài.");
+            }
+
+
         }
+        /** Xu ly mat bong */
+        if (balls.isEmpty()) {
+            this.HP--; // Trừ mạng
+            System.out.println("Mất 1 mạng! Còn lại: " + this.HP);
 
-        // Va chạm giữa Bóng và Gạch
-        // Dùng Iterator để có thể xóa phần tử khỏi List một cách an toàn trong lúc lặp
-        Iterator<Brick> brickIterator = bricks.iterator();
-        while (brickIterator.hasNext()) {
-            Brick brick = brickIterator.next();
-            if (ball.checkCollision(brick)) {
-                ball.bounceOff(brick);
-                soundEffectManager.playHitSound();
-                powerUpManager.trySpawnPowerUp(brick);
-                brickIterator.remove(); // Xóa viên gạch khỏi danh sách
 
-                // TODO: Thêm điểm cho người chơi ở đây
-                break; // Chỉ xử lý va chạm với 1 viên gạch mỗi frame để tránh lỗi
+            if (this.HP <= 0) {
+                setGameOver();
+                System.out.println("GAME OVER");
+            } else {
+                respawnBall(); // Còn mạng, hồi sinh 1 bóng
             }
         }
+
 
         // Cập nhật tất cả các Power-up đang rơi
         powerUpManager.update(deltaTime, gameHeight, paddle);
@@ -197,8 +247,9 @@ public class GameManager {
             // Vẽ paddle
             paddle.render(gc);
 
-            // Vẽ bóng
-            ball.render(gc);
+            for (Ball ball : balls) {
+                ball.render(gc);
+            }
 
             powerUpManager.render(gc);
 

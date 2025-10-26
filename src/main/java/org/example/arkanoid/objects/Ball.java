@@ -11,7 +11,7 @@ public class Ball extends MovableObject {
     //Loại bỏ speed,directionX,directionY, đưa về dạng vector velocity chứa thông tin về hướng và tốc độ
     private Point2D velocity;
     private double radius;
-    private int HP = 3;
+
 
     // Thêm 2 biến để biết kích thước màn hình
     private final double gameWidth;
@@ -27,7 +27,7 @@ public class Ball extends MovableObject {
         //Khởi tạo vector vận tốc
         this.velocity = new Point2D(initialSpeed, -initialSpeed);
         this.gameManager = gameManager;
-        this.HP = 3;
+
     }
 
     /**
@@ -97,6 +97,9 @@ public class Ball extends MovableObject {
     public void move() {
     }
 
+    public double getRadius() {
+        return  radius;
+    }
     @Override
     public void update(double deltaTime) {
         // Cập nhật vị trí dựa trên tốc độ, hướng và deltaTime
@@ -114,17 +117,7 @@ public class Ball extends MovableObject {
             this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
         }
 
-        //Bóng chạm đáy thì GameOver
-        if (y + radius > gameHeight) {
-            this.minusHP();
-            if(this.getHP()==0) {
-                gameManager.setGameOver();
-                this.velocity = new Point2D(0, 0);
-            }
-            else {
-                this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
-            }
-        }
+
     }
 
     @Override
@@ -141,14 +134,5 @@ public class Ball extends MovableObject {
         this.velocity = velocity;
     }
 
-    public int getHP() {
-        return HP;
-    }
 
-    public void setHP(int HP) {
-        this.HP = HP;
-    }
-    public void minusHP() {
-        this.HP --;
-    }
 }
