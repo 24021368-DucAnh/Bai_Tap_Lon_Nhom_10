@@ -136,16 +136,10 @@ public class GameManager {
             Ball ball = ballIterator.next();
             ball.update(deltaTime);
 
-
-
-
             // 1. Va chạm Bóng và Paddle
             if (ball.checkCollision(paddle)) {
                 ball.bounceOff(paddle);
             }
-
-
-
 
             // 2. Va chạm Bóng và Gạch
             Iterator<Brick> brickIterator = bricks.iterator();
@@ -154,6 +148,12 @@ public class GameManager {
                 if (ball.checkCollision(brick)) {
                     ball.bounceOff(brick);
                     powerUpManager.trySpawnPowerUp(brick);
+
+                    int points = 100; // Thêm điểm
+                    if (this.gameUI != null) {
+                        this.gameUI.addScore(points);
+                    }
+
                     brickIterator.remove();
                     break;
                 }
@@ -163,10 +163,6 @@ public class GameManager {
                 ballIterator.remove(); // Xóa bóng này khỏi danh sách
                 System.out.println("Một quả bóng đã rơi ra ngoài.");
             }
-
-
-
-
         }
         /** Xu ly mat bong */
         if (balls.isEmpty()) {
@@ -186,6 +182,11 @@ public class GameManager {
 
         // Cập nhật tất cả các Power-up đang rơi
         powerUpManager.update(deltaTime, gameHeight, paddle);
+
+        // Đồng bộ HP từ GameManager sang GameUI
+        if (this.gameUI != null) {
+            this.gameUI.setLives(this.HP);
+        }
     }
 
 
@@ -214,8 +215,7 @@ public class GameManager {
 
         // Vẽ các lớp UI
         if (currentState == GameState.GAME_OVER) {
-            // int finalScore = gameUI.getScore(); // TODO: Lấy điểm thật
-            int finalScore = 1000;
+            int finalScore = gameUI.getScore(); // Lấy điểm thật
             gameOverScreen.render(gc, finalScore);
         } else if (currentState == GameState.PAUSED) {
             pauseScreen.render(gc);
