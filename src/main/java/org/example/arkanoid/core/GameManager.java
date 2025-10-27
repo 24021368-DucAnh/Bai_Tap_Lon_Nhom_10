@@ -160,6 +160,7 @@ public class GameManager {
         Iterator<Brick> brickIterator = bricks.iterator();
         while (brickIterator.hasNext()) {
             Brick brick = brickIterator.next();
+
             if (ball.checkCollision(brick)) {
                 ball.bounceOff(brick);
                 soundEffectManager.playHitSound();
