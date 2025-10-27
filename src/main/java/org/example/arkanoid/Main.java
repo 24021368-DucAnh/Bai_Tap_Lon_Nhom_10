@@ -64,12 +64,12 @@ public class Main extends Application implements GameNavigator {
         Scene scene = new Scene(root);
 
         //Chuyển việc xử lý phím cho GameManager
-        scene.setOnKeyPressed(event -> gameManager.handleKeyEvent(event));
-        scene.setOnKeyReleased(event -> gameManager.handleKeyEvent(event));
+        scene.setOnKeyPressed(gameManager::handleKeyEvent);
+        scene.setOnKeyReleased(gameManager::handleKeyEvent);
 
         // Chuyển việc xử lý chuột cho GameManager
-        scene.setOnMouseClicked(event -> gameManager.handleMouseClick(event));
-        scene.setOnMouseMoved(event -> gameManager.handleMouseMove(event));
+        scene.setOnMouseClicked(gameManager::handleMouseClick);
+        scene.setOnMouseMoved(gameManager::handleMouseMove);
 
         // Chuyển Stage sang Scene của game
         primaryStage.setScene(scene);

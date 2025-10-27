@@ -26,13 +26,13 @@ public class PowerUpManager {
         activePowerUps.removeIf(powerUp -> {
             powerUp.update(dt);
             if (powerUp.checkCollision(paddle)) {
-                // Nếu va chạm, trả về true.
-                // `removeIf` sẽ tự động xóa power-up này khỏi danh sách.
+                paddle.applyPowerUp(powerUp.getType());
                 return true;
             }
             return powerUp.isOffScreen(gameHeight); // Xóa nếu rơi ra khỏi màn hình
         });
     }
+
 
     /**
      * Vẽ tất cả các Power-up đang hoạt động.
