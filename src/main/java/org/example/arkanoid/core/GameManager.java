@@ -25,8 +25,7 @@ public class GameManager {
 
     private GameUI gameUI;
 
-    // Sound effect
-    private SoundEffectManager soundEffectManager;
+
 
     private Paddle paddle;
     private List<Ball> balls = new ArrayList<>();
@@ -44,7 +43,6 @@ public class GameManager {
         //---------------Tải tài nguyên----------------
         ResourceManager.loadAllResources();
         this.gameUI = new GameUI(gameWidth, gameHeight);
-        this.soundEffectManager = new SoundEffectManager();
 
         //---------Paddle-------------
         final int PADDLE_WIDTH = 46; // Giảm kích thước paddle một chút cho dễ chơi
@@ -115,8 +113,8 @@ public class GameManager {
 
     private void respawnBall() {
         double initialBallX = gameWidth / 2.0;
-        double initialBallY = gameHeight / 2.0;
-        Ball ball = new Ball(initialBallX, initialBallY, 20, 250.0, gameWidth, gameHeight, this);
+        double initialBallY = gameHeight / 2.0 + 200;
+        Ball ball = new Ball(initialBallX, initialBallY, 20, 200.0, gameWidth, gameHeight, this);
         this.balls.add(ball);
     }
 
@@ -139,6 +137,7 @@ public class GameManager {
             // 1. Va chạm Bóng và Paddle
             if (ball.checkCollision(paddle)) {
                 ball.bounceOff(paddle);
+                SoundEffectManager.playHitSound();
             }
 
             // 2. Va chạm Bóng và Gạch
@@ -147,6 +146,7 @@ public class GameManager {
                 Brick brick = brickIterator.next();
                 if (ball.checkCollision(brick)) {
                     ball.bounceOff(brick);
+                    SoundEffectManager.playHitSound();
                     powerUpManager.trySpawnPowerUp(brick);
 
                     int points = 100; // Thêm điểm
@@ -168,9 +168,7 @@ public class GameManager {
         if (balls.isEmpty()) {
             this.HP--; // Trừ mạng
             System.out.println("Mất 1 mạng! Còn lại: " + this.HP);
-
-
-
+            SoundEffectManager.playDeathSound();
 
             if (this.HP <= 0) {
                 setGameOver();

@@ -3,6 +3,7 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
+import org.example.arkanoid.UIUX.SoundEffectManager;
 import org.example.arkanoid.core.GameManager;
 
 
@@ -64,7 +65,7 @@ public class Paddle extends MovableObject {
 
         // Giới hạn paddle trong màn hình
         if (x < 0) x = 0;
-        if (x + width > 800) x = 800 - width;
+        if (x + width > 600) x = 600 - width;
     }
 
     public void applyPowerUp(PowerUpType powerUpType) {
@@ -73,6 +74,7 @@ public class Paddle extends MovableObject {
 
         switch (powerUpType) {
             case PADDLE_GROW:
+                SoundEffectManager.playPaddlePowerupSound();
                 if (!isGrown) {
                     this.width = (int)(this.width * 1.5);
                     this.x = this.x - (this.width - originalWidth) / 2.0;
@@ -83,6 +85,7 @@ public class Paddle extends MovableObject {
 
 
             case ADD_BALL:
+                SoundEffectManager.playBallPowerupSound();
                 gameManager.addBall(); // Đã hoạt động
                 break;
 
@@ -91,6 +94,7 @@ public class Paddle extends MovableObject {
                 // **GỌI HÀM CỦA GAMEMANAGER**
                 if(gameManager.getHp() < 3) {
                     gameManager.addHP();
+                    SoundEffectManager.playExtraLifeSound();
                 }
                 break;
         }

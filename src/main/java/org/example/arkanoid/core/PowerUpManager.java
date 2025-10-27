@@ -1,6 +1,7 @@
 package org.example.arkanoid.core;
 
 import javafx.scene.canvas.GraphicsContext;
+import org.example.arkanoid.UIUX.SoundEffectManager;
 import org.example.arkanoid.objects.Brick;
 import org.example.arkanoid.objects.PowerUp;
 import org.example.arkanoid.objects.PowerUpType;

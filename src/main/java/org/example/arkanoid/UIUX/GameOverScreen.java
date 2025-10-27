@@ -66,22 +66,22 @@ public class GameOverScreen {
      * @param score Điểm số cuối cùng (truyền từ GameUI)
      */
     public void render(GraphicsContext gc, int score) {
-        // 1. Vẽ lớp nền mờ
+        // Vẽ lớp nền mờ
         gc.setFill(new Color(0, 0, 0, 0.8)); // Tối hơn một chút so với pause
         gc.fillRect(0, 0, gameWidth, gameHeight);
 
-        // 2. Vẽ chữ "GAME OVER"
+        // Vẽ chữ "GAME OVER"
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setFont(ResourceManager.textFont);
         gc.setFill(Color.RED);
         gc.fillText("GAME OVER", gameWidth / 2.0, gameHeight / 2.0 - 100);
 
-        // 3. Vẽ Điểm số
+        // Vẽ Điểm số
         gc.setFont(ResourceManager.uiFont);
         gc.setFill(Color.WHITE);
         gc.fillText("Your Score: " + score, gameWidth / 2.0, gameHeight / 2.0 - 20);
 
-        // 4. Vẽ các nút
+        // Vẽ các nút
         for (int i = 0; i < options.length; i++) {
             Rectangle2D rect = buttonRects[i];
 

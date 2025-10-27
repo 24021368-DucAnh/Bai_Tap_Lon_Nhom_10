@@ -10,7 +10,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import org.example.arkanoid.core.ResourceManager;
-// Sử dụng ResourceManager của bạn
 
 public class PauseScreen {
 
@@ -43,7 +42,6 @@ public class PauseScreen {
 
     /**
      * Xử lý sự kiện click chuột.
-     * @return Hành động (RESUME, GOTO_MENU) nếu click trúng nút, ngược lại là NONE.
      */
     public PauseAction handleMouseClick(MouseEvent event) {
         for (int i = 0; i < buttonRects.length; i++) {
@@ -68,8 +66,7 @@ public class PauseScreen {
     }
 
     /**
-     * (Tùy chọn) Xử lý phím ESC để resume.
-     * @return Hành động RESUME nếu là phím ESC, ngược lại là NONE.
+     * Phím ESC để resume.
      */
     public PauseAction handleKeyInput(KeyEvent event) {
         if (event.getEventType() == KeyEvent.KEY_PRESSED && event.getCode() == KeyCode.ESCAPE) {
@@ -80,7 +77,7 @@ public class PauseScreen {
 
 
     /**
-     * Vẽ màn hình pause (bao gồm cả các nút).
+     * Vẽ màn hình pause.
      */
     public void render(GraphicsContext gc) {
         // Vẽ lớp nền mờ (giống code cũ của bạn)
@@ -125,7 +122,7 @@ public class PauseScreen {
     }
 
     /**
-     * Reset trạng thái hover (nên gọi khi bắt đầu pause).
+     * Reset trạng thái hover.
      */
     public void reset() {
         this.hoverIndex = -1;
