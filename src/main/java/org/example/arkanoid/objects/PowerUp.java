@@ -36,7 +36,7 @@ public class PowerUp extends MovableObject {
     private Color getPowerUpColor() {
         return switch (type) {
             case ADD_LIFE -> Color.LIGHTPINK;
-            case SLOW_BALL -> Color.LIGHTBLUE;
+            case ADD_BALL -> Color.LIGHTBLUE;
             case PADDLE_GROW -> Color.LIGHTGREEN;
             default -> Color.YELLOW; // Thêm default để tránh lỗi
         };

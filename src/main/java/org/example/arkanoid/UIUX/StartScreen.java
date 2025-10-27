@@ -6,11 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.stage.Stage;
-
-import java.io.InputStream;
+import org.example.arkanoid.core.ResourceManager;
 
 public class StartScreen {
 
@@ -18,47 +14,11 @@ public class StartScreen {
     private final int screenHeight;
 
     private static final String BACKGROUND_IMAGE_PATH = "/images/startbg.jpg";
-    private static final String FONT_PATH = "/font/pixel.ttf";
-
-    private Font titleFont;
-    private Font buttonFont;
 
     public StartScreen(int width, int height) {
         this.screenWidth = width;
         this.screenHeight = height;
-        loadResources();
-    }
-
-    /**
-     * Tải các tài nguyên (font) từ thư mục resources.
-     * Có fallback về font hệ thống nếu không tìm thấy file.
-     */
-    private void loadResources() {
-        // Tải font cho tiêu đề
-        try (InputStream titleStream = getClass().getResourceAsStream(FONT_PATH)) {
-            if (titleStream == null) {
-                throw new Exception("Không tìm thấy file font tiêu đề: " + FONT_PATH);
-            }
-            // Tải font
-            titleFont = Font.loadFont(titleStream, 70); //kích thước
-        } catch (Exception e) {
-            System.err.println("Lỗi tải font tiêu đề: " + e.getMessage() + ". Sử dụng font mặc định.");
-            // Font dự phòng nếu tải lỗi
-            titleFont = Font.font("Impact", FontWeight.BOLD, 75);
-        }
-
-        // Tải font cho nút
-        try (InputStream buttonStream = getClass().getResourceAsStream(FONT_PATH)) {
-            if (buttonStream == null) {
-                throw new Exception("Không tìm thấy file font nút: " + FONT_PATH);
-            }
-            // Tải font
-            buttonFont = Font.loadFont(buttonStream, 24); //kích thước
-        } catch (Exception e) {
-            System.err.println("Lỗi tải font nút: " + e.getMessage() + ". Sử dụng font mặc định.");
-            // Font dự phòng nếu tải lỗi
-            buttonFont = Font.font("Arial", FontWeight.BOLD, 24);
-        }
+        ResourceManager.loadAllResources();
     }
 
     /**
@@ -86,7 +46,7 @@ public class StartScreen {
 
         // Tiêu đề Game
         Label title = new Label("ARKANOID");
-        title.setFont(titleFont);
+        title.setFont(ResourceManager.titleFont);
         title.setTextFill(Color.WHITE);
         title.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 10, 0.7, 4, 4);");
 
@@ -105,14 +65,14 @@ public class StartScreen {
     }
 
     /**
-     * Hàm tiện ích để tạo một Button với style chung
+     * Tạo Button
      */
     private Button createStyledButton(String text) {
         Button button = new Button(text);
         button.setPrefWidth(300);
 
-        String fontFamily = buttonFont.getFamily();
-        double fontSize = buttonFont.getSize();
+        String fontFamily = ResourceManager.buttonFont.getFamily();
+        double fontSize = ResourceManager.buttonFont.getSize();
 
         String fontStyle = String.format("-fx-font-family: '%s'; -fx-font-size: %.0fpx; ", fontFamily, fontSize);
 
