@@ -64,7 +64,7 @@ public class GameManager {
 
         //---------Brick-------------
         BrickSkinRegistry.initDefaults();
-        int stageToLoad = 5;
+        int stageToLoad = 1;
         System.out.println("Đang tải màn chơi: " + stageToLoad);
         this.bricks = StageLoader.loadFromIndex(stageToLoad, this.gameWidth);
 
