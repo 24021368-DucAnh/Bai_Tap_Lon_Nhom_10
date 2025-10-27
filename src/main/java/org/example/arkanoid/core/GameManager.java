@@ -106,7 +106,7 @@ public class GameManager {
 
         //---------Brick-------------
         BrickSkinRegistry.initDefaults();
-        int stageToLoad = 5;
+        int stageToLoad = 1;
         System.out.println("Đang tải màn chơi: " + stageToLoad);
         this.bricks = StageLoader.loadFromIndex(stageToLoad, this.gameWidth);
 
@@ -163,11 +163,15 @@ public class GameManager {
             if (ball.checkCollision(brick)) {
                 ball.bounceOff(brick);
                 soundEffectManager.playHitSound();
-                powerUpManager.trySpawnPowerUp(brick);
-                brickIterator.remove(); // Xóa viên gạch khỏi danh sách
 
-                // TODO: Thêm điểm cho người chơi ở đây
-                break; // Chỉ xử lý va chạm với 1 viên gạch mỗi frame để tránh lỗi
+                boolean isDestroyed = brick.onCollisionEnter();
+
+                if (isDestroyed) {
+                    powerUpManager.trySpawnPowerUp(brick);
+                    brickIterator.remove();
+                }
+
+                break;
             }
         }
 
