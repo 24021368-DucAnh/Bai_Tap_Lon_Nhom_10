@@ -2,107 +2,65 @@ package org.example.arkanoid.core;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.text.FontWeight;
-import org.example.arkanoid.UIUX.GameUI;
-import org.example.arkanoid.UIUX.SoundEffectManager;
+import javafx.scene.input.MouseEvent;
+import org.example.arkanoid.UIUX.*;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.image.Image;
-
-import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
-import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
-
 
 import java.awt.*;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+
 public class GameManager {
     private final double gameWidth;
     private final double gameHeight;
+    private int HP = 3;
 
-    // Biến trạng thái để pause game
-    private boolean isPaused = false;
-
-    //Biến tài nguyên ảnh, font
-    private static final String FONT_PATH = "/font/pixel.ttf";
-    private static final String PADDLE_IMAGE_PATH = "/images/Paddle.png";
+    private GameState currentState = GameState.PLAYING;
+    private final GameNavigator navigator; // Navigator gọi về Main
+    private PauseScreen pauseScreen;
+    private GameOverScreen gameOverScreen;
 
     private GameUI gameUI;
-    private Font textFont;
-    private Image paddleImage;
 
     // Sound effect
     private SoundEffectManager soundEffectManager;
 
     private Paddle paddle;
-    private Ball ball;
+    private List<Ball> balls = new ArrayList<>();
     private List<Brick> bricks = new ArrayList<>();
     private PowerUpManager powerUpManager;
-    private boolean isGameOver = false;
 
-    public GameManager(double gameWidth, double gameHeight) {
+    public GameManager(double gameWidth, double gameHeight, GameNavigator navigator) {
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
-    }
-
-    /**
-     * Tải TẤT CẢ tài nguyên (font, ảnh, âm thanh)
-     */
-    private void loadResources() {
-        // Tải Font
-        try (InputStream fontStream = getClass().getResourceAsStream(FONT_PATH)) {
-            if (fontStream == null) {
-                throw new Exception("Không tìm thấy font: " + FONT_PATH);
-            }
-            textFont = Font.loadFont(fontStream, 60);
-        } catch (Exception e) {
-            System.err.println("Lỗi tải font: " + e.getMessage());
-            textFont = Font.font("Impact", FontWeight.BOLD, 60);
-        }
-
-        // Tải ảnh Paddle
-        try (InputStream imageStream = getClass().getResourceAsStream(PADDLE_IMAGE_PATH)) {
-            if (imageStream == null) {
-                throw new Exception("Không tìm thấy ảnh: " + PADDLE_IMAGE_PATH);
-            }
-            paddleImage = new Image(imageStream);
-        } catch (Exception e) {
-            System.err.println("Lỗi tải ảnh Paddle: " + e.getMessage());
-        }
-
-        // Khởi tạo Sound Manager
-        this.soundEffectManager = new SoundEffectManager();
+        this.navigator = navigator;
     }
 
     public void init() {
 
         //---------------Tải tài nguyên----------------
+        ResourceManager.loadAllResources();
         this.gameUI = new GameUI(gameWidth, gameHeight);
-        loadResources();
+        this.soundEffectManager = new SoundEffectManager();
 
         //---------Paddle-------------
         final int PADDLE_WIDTH = 46; // Giảm kích thước paddle một chút cho dễ chơi
         final int PADDLE_HEIGHT = 20;
         final int PADDLE_OFFSET_FROM_BOTTOM = 100; // Cách lề dưới 1 khoảng y
 
+        // Hình ảnh paddle có thể cần điều chỉnh lại cho phù hợp với W/H mới
         double initialPaddleX = (gameWidth - PADDLE_WIDTH) / 2.0;
         double initialPaddleY = gameHeight - PADDLE_HEIGHT - PADDLE_OFFSET_FROM_BOTTOM;
 
-        this.powerUpManager = new PowerUpManager();
-
-        // Hình ảnh paddle có thể cần điều chỉnh lại cho phù hợp với W/H mới
         this.paddle = new Paddle(
                 initialPaddleX,
                 initialPaddleY,
                 PADDLE_WIDTH, PADDLE_HEIGHT,
-                paddleImage);
+                ResourceManager.paddleImage,
+                this);
 
         //---------Brick-------------
         BrickSkinRegistry.initDefaults();
@@ -117,57 +75,112 @@ public class GameManager {
         }
 
         //---------Ball-------------
-        final int BALL_DIAMETER = 20;
-        final double BALL_SPEED = 200; // Tốc độ hợp lý hơn (pixels / giây)
-        double initialBallX = gameWidth / 2;
-        double initialBallY = gameHeight / 2;
+        respawnBall();
 
-        // Gọi constructor mới của Ball
-        ball = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this);
+        //------ PowerUp ---------
+        this.powerUpManager = new PowerUpManager();
+
+        //------ Pause Screen -----
+        this.pauseScreen = new PauseScreen(gameWidth, gameHeight);
+
+        //------ Game Over Screen -----
+        this.gameOverScreen = new GameOverScreen(gameWidth, gameHeight);
+
+        // Đặt trạng thái ban đầu
+        this.currentState = GameState.PLAYING;
     }
 
     //setGameOver
     public boolean isGameOver() {
-        return this.isGameOver;
+        return this.currentState == GameState.GAME_OVER;
     }
     public void setGameOver() {
-        this.isGameOver = true;
-        System.out.println("Đã chuyển sang trại thái GameOver !");
-    }
-    public void update(double deltaTime) {
-
-        //Check nếu gameOver thì không update gì nữa
-        if (isGameOver) {
-            return;
+        this.currentState = GameState.GAME_OVER;
+        if (this.gameOverScreen != null) { // Thêm kiểm tra an toàn
+            this.gameOverScreen.reset(); // Reset hover cho nút
         }
-        if (isPaused) {
+        System.out.println("GameOver !");
+    }
+
+    public void addBall() {
+        // Tạo bóng mới ở ngay trên paddle
+        double newBallX = paddle.getX() + (paddle.getWidth() / 2.0);
+        double newBallY = paddle.getY() - 20; // Hơi cao hơn paddle
+
+
+        Ball newBall = new Ball(newBallX, newBallY, 20, 250.0, gameWidth, gameHeight, this);
+        this.balls.add(newBall);
+    }
+
+
+    private void respawnBall() {
+        double initialBallX = gameWidth / 2.0;
+        double initialBallY = gameHeight / 2.0;
+        Ball ball = new Ball(initialBallX, initialBallY, 20, 250.0, gameWidth, gameHeight, this);
+        this.balls.add(ball);
+    }
+
+    /**
+     * Update theo dt
+     * @param deltaTime
+     */
+    public void update(double deltaTime) {
+        if (currentState != GameState.PLAYING) {
             return;
         }
 
         paddle.update(deltaTime);
-        ball.update(deltaTime);
+        // Dùng Iterator để có thể xóa bóng khi nó rơi ra ngoài
+        Iterator<Ball> ballIterator = balls.iterator();
+        while (ballIterator.hasNext()) {
+            Ball ball = ballIterator.next();
+            ball.update(deltaTime);
 
-        // --- Xử lý va chạm ---
 
-        //  Va chạm giữa Bóng và Paddle
-        if (ball.checkCollision(paddle)) {
-            ball.bounceOff(paddle);
-            soundEffectManager.playHitSound();
+
+
+            // 1. Va chạm Bóng và Paddle
+            if (ball.checkCollision(paddle)) {
+                ball.bounceOff(paddle);
+            }
+
+
+
+
+            // 2. Va chạm Bóng và Gạch
+            Iterator<Brick> brickIterator = bricks.iterator();
+            while (brickIterator.hasNext()) {
+                Brick brick = brickIterator.next();
+                if (ball.checkCollision(brick)) {
+                    ball.bounceOff(brick);
+                    powerUpManager.trySpawnPowerUp(brick);
+                    brickIterator.remove();
+                    break;
+                }
+            }
+            // 3. Xử lý bóng rơi ra ngoài
+            if (ball.getY() - ball.getRadius() > gameHeight) {
+                ballIterator.remove(); // Xóa bóng này khỏi danh sách
+                System.out.println("Một quả bóng đã rơi ra ngoài.");
+            }
+
+
+
+
         }
+        /** Xu ly mat bong */
+        if (balls.isEmpty()) {
+            this.HP--; // Trừ mạng
+            System.out.println("Mất 1 mạng! Còn lại: " + this.HP);
 
-        // Va chạm giữa Bóng và Gạch
-        // Dùng Iterator để có thể xóa phần tử khỏi List một cách an toàn trong lúc lặp
-        Iterator<Brick> brickIterator = bricks.iterator();
-        while (brickIterator.hasNext()) {
-            Brick brick = brickIterator.next();
-            if (ball.checkCollision(brick)) {
-                ball.bounceOff(brick);
-                soundEffectManager.playHitSound();
-                powerUpManager.trySpawnPowerUp(brick);
-                brickIterator.remove(); // Xóa viên gạch khỏi danh sách
 
-                // TODO: Thêm điểm cho người chơi ở đây
-                break; // Chỉ xử lý va chạm với 1 viên gạch mỗi frame để tránh lỗi
+
+
+            if (this.HP <= 0) {
+                setGameOver();
+                System.out.println("GAME OVER");
+            } else {
+                respawnBall(); // Còn mạng, hồi sinh 1 bóng
             }
         }
 
@@ -175,83 +188,133 @@ public class GameManager {
         powerUpManager.update(deltaTime, gameHeight, paddle);
     }
 
+
     public void render(GraphicsContext gc) {
         // Xóa toàn bộ màn hình trước khi vẽ lại
         gc.clearRect(0, 0, gameWidth, gameHeight);
 
-        //In gameOver
-        if (isGameOver) {
-            gc.setFill(Color.RED);
-            gc.setFont(textFont);
 
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.fillText("Game Over", gameWidth / 2.0, gameHeight / 2.0);
-            gc.setTextAlign(TextAlignment.LEFT);
+        // Vẽ gameUI
+        gameUI.render(gc);
 
+        // Vẽ paddle
+        paddle.render(gc);
 
-        } else {
-
-            // Vẽ gameUI
-            gameUI.render(gc);
-
-            // Vẽ paddle
-            paddle.render(gc);
-
-            // Vẽ bóng
+        // Vẽ bóng
+        for (Ball ball : balls) {
             ball.render(gc);
-
-            powerUpManager.render(gc);
-
-            // Vẽ những viên gạch còn lại
-            for (Brick brick : bricks) {
-                BrickPainter.draw(gc, brick);
-            }
         }
 
-        if (isPaused) {
-            // Vẽ một lớp màu đen mờ lên trên toàn bộ màn hình
-            gc.setFill(new Color(0, 0, 0, 0.6));
-            gc.fillRect(0, 0, gameWidth, gameHeight);
+        powerUpManager.render(gc);
 
-            // Vẽ chữ "PAUSED"
-            gc.setFont(textFont);
-            gc.setTextAlign(TextAlignment.CENTER);
-
-            // Vẽ bóng đổ
-            gc.setFill(new Color(0, 0, 0, 0.7));
-            gc.fillText("PAUSED", gameWidth / 2.0 + 4, gameHeight / 2.0 + 4);
-
-            // Vẽ chữ
-            gc.setFill(Color.WHITE);
-            gc.fillText("PAUSED", gameWidth / 2.0, gameHeight / 2.0);
+        // Vẽ những viên gạch còn lại
+        for (Brick brick : bricks) {
+            BrickPainter.draw(gc, brick);
         }
+
+        // Vẽ các lớp UI
+        if (currentState == GameState.GAME_OVER) {
+            // int finalScore = gameUI.getScore(); // TODO: Lấy điểm thật
+            int finalScore = 1000;
+            gameOverScreen.render(gc, finalScore);
+        } else if (currentState == GameState.PAUSED) {
+            pauseScreen.render(gc);
+        }
+    }
+
+    public void addHP() {
+        this.HP++;
+        System.out.println("Đã cộng 1 mạng! Mạng hiện tại: " + this.HP);
+    }
+
+
+    public int getHp() {
+        return this.HP;
     }
 
     public void handleKeyEvent(KeyEvent event) {
         KeyCode code = event.getCode();
 
-        // Xử lý pause/unpause khi phím được NHẤN
-        if (event.getEventType() == KeyEvent.KEY_PRESSED) {
-            if (event.getCode() == KeyCode.ESCAPE) {
-                isPaused = !isPaused; // true -> false, false -> true
-            }
-        }
-
-        // Nếu game đang bị tạm dừng, không xử lý các phím di chuyển
-        if (isPaused) {
+        if (currentState == GameState.GAME_OVER) {
             return;
         }
 
-        boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
+        //Xử lý Pause/Unpause
+        if (event.getEventType() == KeyEvent.KEY_PRESSED && code == KeyCode.ESCAPE) {
+            if (currentState == GameState.PLAYING) {
+                currentState = GameState.PAUSED;
+                pauseScreen.reset(); // Reset trạng thái hover của nút
+            } else if (currentState == GameState.PAUSED) {
+                currentState = GameState.PLAYING;
+            }
+            return;
+        }
 
-        if (code == KeyCode.A || code == KeyCode.LEFT) {
-            paddle.setMovingLeft(isPressed);
-        } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
-            paddle.setMovingRight(isPressed);
+        if (currentState == GameState.PAUSED) {
+            return;
+        }
+
+
+        // Nếu đang PLAYING, xử lý paddle
+        if (currentState == GameState.PLAYING) {
+            boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
+            if (code == KeyCode.A || code == KeyCode.LEFT) {
+                paddle.setMovingLeft(isPressed);
+            } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
+                paddle.setMovingRight(isPressed);
+            }
         }
     }
 
-    public boolean isPaused() {
-        return isPaused;
+    /**
+     * Xử lý sự kiện click chuột.
+     */
+    public void handleMouseClick(MouseEvent event) {
+        if (currentState == GameState.PAUSED) {
+            PauseAction action = pauseScreen.handleMouseClick(event);
+
+            switch (action) {
+                case RESUME:
+                    currentState = GameState.PLAYING;
+                    break;
+                case GOTO_MENU:
+                    if (navigator != null) {
+                        navigator.goToStartScreen();
+                    }
+                    break;
+                case NONE:
+                    break;
+            }
+        }
+        else if (currentState == GameState.GAME_OVER) {
+            if (gameOverScreen != null) {
+                GameOverAction action = gameOverScreen.handleMouseClick(event);
+                switch (action) {
+                    case RETRY:
+                        if (navigator != null) {
+                            navigator.retryGame();
+                        }
+                        break;
+                    case GOTO_MENU:
+                        if (navigator != null) {
+                            navigator.goToStartScreen();
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Xử lý sự kiện di chuyển chuột.
+     */
+    public void handleMouseMove(MouseEvent event) {
+        if (currentState == GameState.PAUSED) {
+            pauseScreen.handleMouseMove(event);
+        } else if (currentState == GameState.GAME_OVER) {
+            if (gameOverScreen != null) {
+                gameOverScreen.handleMouseMove(event);
+            }
+        }
     }
 }

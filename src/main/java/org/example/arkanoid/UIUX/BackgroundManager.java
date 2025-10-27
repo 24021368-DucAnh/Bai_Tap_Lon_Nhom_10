@@ -1,5 +1,8 @@
 package org.example.arkanoid.UIUX;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.Scene;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -24,11 +27,27 @@ public class BackgroundManager {
         this.videoPlayer.setMute(true);
         this.mediaView = new MediaView(this.videoPlayer);
 
+        this.mediaView.setFitWidth(gameWidth);
+        this.mediaView.setFitHeight(gameHeight);
+        this.mediaView.setPreserveRatio(false);
+
         // Tải và khởi tạo Music Player
         String musicPath = getClass().getResource("/sound/background/tamlongson.mp3").toExternalForm();
         this.musicPlayer = new MediaPlayer(new Media(musicPath));
         this.musicPlayer.setCycleCount(MediaPlayer.INDEFINITE);
         this.musicPlayer.setVolume(0.3); //Chỉnh volume
+
+        mediaView.sceneProperty().addListener(new ChangeListener<Scene>() {
+            @Override
+            public void changed(ObservableValue<? extends Scene> observable, Scene oldScene, Scene newScene) {
+                if (newScene != null) {
+                    // Khi MediaView đã được gắn vào Scene, BẮT ĐẦU PHÁT VIDEO.
+                    videoPlayer.play();
+                    // Xóa listener này đi để nó không chạy lại
+                    mediaView.sceneProperty().removeListener(this);
+                }
+            }
+        });
     }
 
     public MediaView getMediaView() {
@@ -36,19 +55,16 @@ public class BackgroundManager {
     }
 
     public void startMedia() {
-        // Đồng bộ hóa Video
-        this.videoPlayer.setOnReady(() -> {
-            this.mediaView.setFitWidth(gameWidth);
-            this.mediaView.setFitHeight(gameHeight);
-            this.mediaView.setPreserveRatio(false);
+        musicPlayer.play();
 
-            videoPlayer.play();
-        });
-
-        // Đồng bộ hóa Music
-        this.musicPlayer.setOnReady(() -> {
-            musicPlayer.play();
-        });
     }
 
+    public void stopMedia() {
+        if (videoPlayer != null) {
+            videoPlayer.stop();
+        }
+        if (musicPlayer != null) {
+            musicPlayer.stop();
+        }
+    }
 }
