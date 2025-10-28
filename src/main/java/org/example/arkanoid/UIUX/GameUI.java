@@ -96,5 +96,18 @@ public class GameUI {
         // Vẽ chữ
         gc.setFill(Color.WHITE);
         gc.fillText(scoreText, xScorePos, yPos);
+
+        gc.setFill(Color.WHITE);
+        gc.setFont(ResourceManager.uiFont); // Dùng font UI
+        gc.setTextAlign(TextAlignment.RIGHT); // Căn lề phải chẳng hạn
+        gc.fillText("Stage: " + currentStage, gameWidth - 20, 30); // Vẽ ở góc trên bên phải
+        gc.setTextAlign(TextAlignment.LEFT);
+    }
+
+    private int currentStage = 1;
+    public void updateStage(int stage) {
+        this.currentStage = stage;
+        // Bạn không cần vẽ lại ngay lập tức ở đây,
+        // hàm render() sẽ tự động vẽ giá trị mới này mỗi frame.
     }
 }
