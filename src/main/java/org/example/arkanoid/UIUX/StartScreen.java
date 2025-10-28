@@ -5,8 +5,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import org.example.arkanoid.core.ResourceManager;
+
+import java.net.URL;
 
 public class StartScreen {
 
@@ -14,11 +18,45 @@ public class StartScreen {
     private final int screenHeight;
 
     private static final String BACKGROUND_IMAGE_PATH = "/images/startbg.jpg";
+    private static final String BACKGROUND_MUSIC_PATH = "/sound/sound effect/Game Start.mp3";
+
+    private MediaPlayer backgroundMusicPlayer;
 
     public StartScreen(int width, int height) {
         this.screenWidth = width;
         this.screenHeight = height;
         ResourceManager.loadAllResources();
+        initializeMusic();
+    }
+
+    private void initializeMusic() {
+        try {
+            URL resource = getClass().getResource(BACKGROUND_MUSIC_PATH);
+            if (resource != null) {
+                Media media = new Media(resource.toExternalForm());
+                backgroundMusicPlayer = new MediaPlayer(media);
+                backgroundMusicPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+
+                backgroundMusicPlayer.setVolume(1.5); // 50% âm lượng
+            } else {
+                System.err.println("Không tìm thấy file nhạc nền: " + BACKGROUND_MUSIC_PATH);
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi khi tải nhạc nền: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void stopMusic() {
+        if (backgroundMusicPlayer != null) {
+            backgroundMusicPlayer.stop();
+        }
+    }
+
+    public void playMusic() {
+        if (backgroundMusicPlayer != null && backgroundMusicPlayer.getStatus() != MediaPlayer.Status.PLAYING) {
+            backgroundMusicPlayer.play();
+        }
     }
 
     /**
@@ -44,6 +82,10 @@ public class StartScreen {
             layout.setStyle("-fx-background-color: black;");
         }
 
+        if (backgroundMusicPlayer != null) {
+            backgroundMusicPlayer.play();
+        }
+
         // Tiêu đề Game
         Label title = new Label("ARKANOID");
         title.setFont(ResourceManager.titleFont);
@@ -52,11 +94,18 @@ public class StartScreen {
 
         // Nút "Start Game"
         Button startButton = createStyledButton("Start Game");
-        startButton.setOnAction(e -> onStartGame.run());
+        startButton.setOnAction(e -> {
+            stopMusic();
+            onStartGame.run();
+            SoundEffectManager.playRoundStartSound();
+        });
 
         // Nút "Exit"
         Button exitButton = createStyledButton("Exit");
-        exitButton.setOnAction(e -> onExitGame.run());
+        exitButton.setOnAction(e -> {
+            stopMusic();
+            onExitGame.run();
+        });
 
         // Cho vào layout
         layout.getChildren().addAll(title, startButton, exitButton);

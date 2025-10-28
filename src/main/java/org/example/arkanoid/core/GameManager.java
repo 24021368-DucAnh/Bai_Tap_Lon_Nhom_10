@@ -6,8 +6,6 @@ import javafx.scene.input.MouseEvent;
 import org.example.arkanoid.UIUX.*;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -27,8 +25,7 @@ public class GameManager {
 
     private GameUI gameUI;
 
-    // Sound effect
-    private SoundEffectManager soundEffectManager;
+
 
     private Paddle paddle;
     private List<Ball> balls = new ArrayList<>();
@@ -50,19 +47,9 @@ public class GameManager {
         //---------------Tải tài nguyên----------------
         ResourceManager.loadAllResources();
         this.gameUI = new GameUI(gameWidth, gameHeight);
-        this.soundEffectManager = new SoundEffectManager();
-        this.powerUpManager = new PowerUpManager();
-        BrickSkinRegistry.initDefaults();
-
-        this.pauseScreen = new PauseScreen(gameWidth, gameHeight);
-        this.gameOverScreen = new GameOverScreen(gameWidth, gameHeight);
-
-        this.HP = 3;
-        this.isGameWon = false;
-        this.currentState = GameState.PLAYING;
 
         //---------Paddle-------------
-        final int PADDLE_WIDTH = 1000; // Giảm kích thước paddle một chút cho dễ chơi
+        final int PADDLE_WIDTH = 46; // Giảm kích thước paddle một chút cho dễ chơi
         final int PADDLE_HEIGHT = 20;
         final int PADDLE_OFFSET_FROM_BOTTOM = 100; // Cách lề dưới 1 khoảng y
 
@@ -105,7 +92,6 @@ public class GameManager {
         this.currentState = GameState.PLAYING;
 
         this.isGameWon = false;
-        this.currentState = GameState.PLAYING;
         loadStage(1);
     }
 
@@ -236,6 +222,7 @@ public class GameManager {
             // 1. Va chạm Bóng và Paddle
             if (ball.checkCollision(paddle)) {
                 ball.bounceOff(paddle);
+                SoundEffectManager.playHitSound();
             }
 
             // 2. Va chạm Bóng và Gạch
@@ -248,7 +235,7 @@ public class GameManager {
                 for (Ball balL : balls) {
                     if (balL.checkCollision(brick)) {
                         balL.bounceOff(brick); // Bóng nảy ra
-                        soundEffectManager.playHitSound();
+                        SoundEffectManager.playHitSound();
 
                         // GỌI HÀM TRỪ MÁU:
                         boolean isDestroyed = brick.onCollisionEnter();
@@ -256,7 +243,10 @@ public class GameManager {
                         if (isDestroyed) {
                             powerUpManager.trySpawnPowerUp(brick);
                             brickWasDestroyed = true; // Đánh dấu là gạch này đã vỡ
-                            // TODO: Thêm điểm cho người chơi ở đây
+                            int points = 100; // Thêm điểm
+                            if (this.gameUI != null) {
+                                this.gameUI.addScore(points);
+                            }
                         }
 
                         // Một quả bóng chỉ va chạm 1 gạch mỗi frame
@@ -279,9 +269,7 @@ public class GameManager {
         if (balls.isEmpty()) {
             this.HP--; // Trừ mạng
             System.out.println("Mất 1 mạng! Còn lại: " + this.HP);
-
-
-
+            SoundEffectManager.playDeathSound();
 
             if (this.HP <= 0) {
                 setGameOver();

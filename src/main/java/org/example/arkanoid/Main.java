@@ -18,8 +18,9 @@ public class Main extends Application implements GameNavigator {
     private final int GAME_HEIGHT = 800;
 
     private Stage primaryStage;
+    private Scene startScene;
 
-    private Scene startScene;         // Lưu lại scene của màn hình bắt đầu
+    private StartScreen startScreen;      // Lưu lại scene của màn hình bắt đầu
     private GameLoop gameLoop;        // Lưu lại vòng lặp game để có thể stop()
     private BackgroundManager backgroundManager; // Lưu lại để có thể stop media
 
@@ -29,17 +30,18 @@ public class Main extends Application implements GameNavigator {
         primaryStage.setTitle("Arkanoid");
 
         // Tạo màn hình bắt đầu
-        StartScreen startScreen = new StartScreen(GAME_WIDTH, GAME_HEIGHT);
+        this.startScreen = new StartScreen(GAME_WIDTH, GAME_HEIGHT);
 
         // Gọi startGame() khi nhấn nút Start
         // Thoát khi nhấn nút Exit
-        Pane startPane = startScreen.createContent(this::startGame, Platform::exit);
+        Pane startPane = this.startScreen.createContent(this::startGame, Platform::exit);
 
         this.startScene = new Scene(startPane);
 
         primaryStage.setScene(this.startScene);
         primaryStage.setResizable(false);      // Không cho phép thay đổi kích thước
         primaryStage.show();                   // Hiển thị cửa sổ
+
     }
 
     public void startGame() {
@@ -49,15 +51,14 @@ public class Main extends Application implements GameNavigator {
         // Tạo BackgroundManager
         this.backgroundManager = new BackgroundManager(GAME_WIDTH, GAME_HEIGHT);
 
-        // Bắt đầu và tải background và music
-        this.backgroundManager.startMedia();
-
         // Tạo GameManager
         GameManager gameManager = new GameManager(GAME_WIDTH, GAME_HEIGHT, this);
         gameManager.init(); // Khởi tạo các đối tượng game
 
-        // Thêm video trước canvas (game)
-        Pane root = new Pane(this.backgroundManager.getMediaView(), canvas);
+        // Thêm Background vào pane
+        Pane root = new Pane();
+        root.getChildren().add(this.backgroundManager.getBackgroundPane());
+        root.getChildren().add(canvas);
         root.setPrefSize(GAME_WIDTH, GAME_HEIGHT);
 
         // Tạo Scene
@@ -93,13 +94,16 @@ public class Main extends Application implements GameNavigator {
 
         // Dừng background
         if (this.backgroundManager != null) {
-            this.backgroundManager.stopMedia();
             this.backgroundManager = null;
         }
 
         // Chuyển Stage trở lại màn hình bắt đầu
         if (this.primaryStage != null && this.startScene != null) {
             primaryStage.setScene(this.startScene);
+
+            if (this.startScreen != null) {
+                this.startScreen.playMusic();
+            }
         }
     }
 
@@ -109,7 +113,6 @@ public class Main extends Application implements GameNavigator {
             this.gameLoop.stop();
         }
         if (this.backgroundManager != null) {
-            this.backgroundManager.stopMedia();
             this.backgroundManager = null;
         }
 
