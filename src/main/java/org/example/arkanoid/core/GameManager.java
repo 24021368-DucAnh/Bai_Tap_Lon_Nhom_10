@@ -145,17 +145,31 @@ public class GameManager {
             Iterator<Brick> brickIterator = bricks.iterator();
             while (brickIterator.hasNext()) {
                 Brick brick = brickIterator.next();
-                if (ball.checkCollision(brick)) {
-                    ball.bounceOff(brick);
-                    powerUpManager.trySpawnPowerUp(brick);
+                boolean brickWasDestroyed = false; // Cờ để theo dõi gạch đã vỡ chưa
 
-                    int points = 100; // Thêm điểm
-                    if (this.gameUI != null) {
-                        this.gameUI.addScore(points);
+                // Lặp qua từng quả bóng
+                for (Ball balL : balls) {
+                    if (balL.checkCollision(brick)) {
+                        balL.bounceOff(brick); // Bóng nảy ra
+                        soundEffectManager.playHitSound();
+
+                        // GỌI HÀM TRỪ MÁU:
+                        boolean isDestroyed = brick.onCollisionEnter();
+
+                        if (isDestroyed) {
+                            powerUpManager.trySpawnPowerUp(brick);
+                            brickWasDestroyed = true; // Đánh dấu là gạch này đã vỡ
+                            // TODO: Thêm điểm cho người chơi ở đây
+                        }
+
+                        // Một quả bóng chỉ va chạm 1 gạch mỗi frame
+                        break;
                     }
+                }
 
+                // Xóa gạch (remove) NẾU nó đã bị phá hủy
+                if (brickWasDestroyed) {
                     brickIterator.remove();
-                    break;
                 }
             }
             // 3. Xử lý bóng rơi ra ngoài
