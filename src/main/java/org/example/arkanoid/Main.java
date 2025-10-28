@@ -51,15 +51,14 @@ public class Main extends Application implements GameNavigator {
         // Tạo BackgroundManager
         this.backgroundManager = new BackgroundManager(GAME_WIDTH, GAME_HEIGHT);
 
-        // Bắt đầu và tải background và music
-        this.backgroundManager.startMedia();
-
         // Tạo GameManager
         GameManager gameManager = new GameManager(GAME_WIDTH, GAME_HEIGHT, this);
         gameManager.init(); // Khởi tạo các đối tượng game
 
-        // Thêm video trước canvas (game)
-        Pane root = new Pane(this.backgroundManager.getMediaView(), canvas);
+        // Thêm Background vào pane
+        Pane root = new Pane();
+        root.getChildren().add(this.backgroundManager.getBackgroundPane());
+        root.getChildren().add(canvas);
         root.setPrefSize(GAME_WIDTH, GAME_HEIGHT);
 
         // Tạo Scene
@@ -95,7 +94,6 @@ public class Main extends Application implements GameNavigator {
 
         // Dừng background
         if (this.backgroundManager != null) {
-            this.backgroundManager.stopMedia();
             this.backgroundManager = null;
         }
 
@@ -115,7 +113,6 @@ public class Main extends Application implements GameNavigator {
             this.gameLoop.stop();
         }
         if (this.backgroundManager != null) {
-            this.backgroundManager.stopMedia();
             this.backgroundManager = null;
         }
 

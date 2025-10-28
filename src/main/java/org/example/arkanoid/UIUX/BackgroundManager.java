@@ -1,70 +1,59 @@
 package org.example.arkanoid.UIUX;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.scene.Scene;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
+
+import javafx.geometry.Pos;
+import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.image.ImageView;
 
 public class BackgroundManager {
-    private final MediaPlayer videoPlayer;
-    private final MediaPlayer musicPlayer;
-    private final MediaView mediaView;
-
-    private final int gameWidth;
-    private final int gameHeight;
+    private final Pane backgroundPane;
 
     public BackgroundManager(int width, int height) {
-        this.gameWidth = width;
-        this.gameHeight = height;
+        Image bgImage = new Image(getClass().getResource("/images/gamebg.jpg").toExternalForm());
+        Image topFrameImage = new Image(getClass().getResource("/images/frame_top.png").toExternalForm());
+        Image leftFrameImage = new Image(getClass().getResource("/images/frame_left.png").toExternalForm());
+        Image rightFrameImage = new Image(getClass().getResource("/images/frame_right.png").toExternalForm());
 
-        // Tải và khởi tạo Video Player
-        String videoPath = getClass().getResource("/sound/background/canhnhayvina.mp4").toExternalForm();
-        this.videoPlayer = new MediaPlayer(new Media(videoPath));
-        this.videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-        this.videoPlayer.setMute(true);
-        this.mediaView = new MediaView(this.videoPlayer);
+        // Tạo nền
+        ImageView bgView = new ImageView(bgImage);
+        bgView.setFitWidth(width);  // Lấp đầy toàn bộ
+        bgView.setFitHeight(height);
 
-        this.mediaView.setFitWidth(gameWidth);
-        this.mediaView.setFitHeight(gameHeight);
-        this.mediaView.setPreserveRatio(false);
+        // Khung trên
+        ImageView topFrameView = new ImageView(topFrameImage);
+        topFrameView.setFitWidth(width);
+        topFrameView.setPreserveRatio(true);
 
-        // Tải và khởi tạo Music Player
-        String musicPath = getClass().getResource("/sound/background/tamlongson.mp3").toExternalForm();
-        this.musicPlayer = new MediaPlayer(new Media(musicPath));
-        this.musicPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-        this.musicPlayer.setVolume(0.3); //Chỉnh volume
+        // Khung trái
+        ImageView leftFrameView = new ImageView(leftFrameImage);
+        leftFrameView.setFitHeight(height);
+        leftFrameView.setPreserveRatio(true);
 
-        mediaView.sceneProperty().addListener(new ChangeListener<Scene>() {
-            @Override
-            public void changed(ObservableValue<? extends Scene> observable, Scene oldScene, Scene newScene) {
-                if (newScene != null) {
-                    // Khi MediaView đã được gắn vào Scene, BẮT ĐẦU PHÁT VIDEO.
-                    videoPlayer.play();
-                    // Xóa listener này đi để nó không chạy lại
-                    mediaView.sceneProperty().removeListener(this);
-                }
-            }
-        });
+        // Khung phải
+        ImageView rightFrameView = new ImageView(rightFrameImage);
+        rightFrameView.setFitHeight(height);
+        rightFrameView.setPreserveRatio(true);
+
+        this.backgroundPane = new StackPane();
+
+
+        backgroundPane.getChildren().add(bgView);
+        StackPane.setAlignment(bgView, Pos.CENTER);
+
+        backgroundPane.getChildren().add(topFrameView);
+        StackPane.setAlignment(topFrameView, Pos.TOP_CENTER); // Căn lên trên
+
+        backgroundPane.getChildren().add(leftFrameView);
+        StackPane.setAlignment(leftFrameView, Pos.CENTER_LEFT); // Căn sang trái
+
+        backgroundPane.getChildren().add(rightFrameView);
+        StackPane.setAlignment(rightFrameView, Pos.CENTER_RIGHT); // Căn sang phải
+
     }
 
-    public MediaView getMediaView() {
-        return this.mediaView;
-    }
-
-    public void startMedia() {
-        musicPlayer.play();
-
-    }
-
-    public void stopMedia() {
-        if (videoPlayer != null) {
-            videoPlayer.stop();
-        }
-        if (musicPlayer != null) {
-            musicPlayer.stop();
-        }
+    public Pane getBackgroundPane() {
+        return this.backgroundPane;
     }
 }
