@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Random;
 
 
+
 public class PowerUpManager {
 
     private List<PowerUp> activePowerUps = new ArrayList<>();
@@ -57,12 +58,16 @@ public class PowerUpManager {
             PowerUpType randomType = allTypes[random.nextInt(allTypes.length)];
 
             // 2. Tạo đối tượng PowerUp ở trung tâm viên gạch
-            double pw = 30; // Kích thước power-up
-            double ph = 15;
-            double px = destroyedBrick.getX() + (destroyedBrick.getWidth() / 2) - (pw / 2);
-            double py = destroyedBrick.getY();
+            double px_center = destroyedBrick.getX() + (destroyedBrick.getWidth() / 2.0);
+            double py_center = destroyedBrick.getY() + (destroyedBrick.getHeight() / 2.0);
+            PowerUp newPowerUp = new PowerUp(px_center, py_center, randomType);
 
-            activePowerUps.add(new PowerUp(px, py, (int) pw, (int) ph, randomType));
+            // 3. (Quan trọng) Căn giữa PowerUp sau khi nó tự lấy W/H từ ảnh
+            // Dịch X và Y về
+            newPowerUp.setX(px_center - (newPowerUp.getWidth() / 2.0));
+            newPowerUp.setY(py_center - (newPowerUp.getHeight() / 2.0));
+
+            activePowerUps.add(newPowerUp);
         }
     }
 }

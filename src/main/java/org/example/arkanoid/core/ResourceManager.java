@@ -3,8 +3,11 @@ package org.example.arkanoid.core;
 import javafx.scene.image.Image;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import org.example.arkanoid.objects.PowerUpType;
 
 import java.io.InputStream;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * Lớp tiện ích để tải và lưu trữ tài nguyên game dùng chung.
@@ -15,6 +18,7 @@ public class ResourceManager {
     private static final String FONT_PATH = "/font/pixel.ttf";
     private static final String PADDLE_IMAGE_PATH = "/images/Paddle.png";
     private static final String LIFE_ICON_PATH = "/images/heart.png";
+    private static final String POWERUP_PATH_PREFIX = "/images/PowerUp/";
 
     // Tài nguyên
     public static Font textFont;
@@ -24,6 +28,8 @@ public class ResourceManager {
 
     public static Image paddleImage;
     public static Image lifeIcon;
+
+    private static final Map<PowerUpType, Image[]> powerUpAnimations = new EnumMap<>(PowerUpType.class);
     /**
      * Tải tất cả tài nguyên cần thiết cho game.
      * Gọi hàm này một lần khi game khởi động.
@@ -89,5 +95,51 @@ public class ResourceManager {
             System.err.println("Lỗi tải ảnh Máu: " + e.getMessage());
             lifeIcon = null;
         }
+
+        // --- THÊM MỚI: TẢI ANIMATION POWER-UP ---
+        // (Bạn cần thay đổi tên file "add_life", "add_ball" cho khớp với file của bạn)
+        // (Giả định mỗi cái có 8 frame)
+
+        // Tải 8 frame cho ADD_LIFE (ví dụ: /images/powerups/add_life_1.png -> 8)
+        powerUpAnimations.put(PowerUpType.PADDLE_GROW,
+                loadAnimation(POWERUP_PATH_PREFIX + "powerup_expand_", 8));
+
+        // Tải 8 frame cho ADD_BALL (ví dụ: /images/powerups/add_ball_1.png -> 8)
+        powerUpAnimations.put(PowerUpType.ADD_BALL,
+                loadAnimation(POWERUP_PATH_PREFIX + "powerup_duplicate_", 8));
+
+        powerUpAnimations.put(PowerUpType.ADD_LIFE,
+                loadAnimation(POWERUP_PATH_PREFIX + "powerup_life_", 8));
+    }
+
+    private static Image[] loadAnimation(String basePath, int frameCount) {
+        Image[] frames = new Image[frameCount];
+        boolean success = true;
+
+        for (int i = 0; i < frameCount; i++) {
+            String path = basePath + (i + 1) + ".png"; // Tải file từ 1 -> 8
+            try (InputStream stream = ResourceManager.class.getResourceAsStream(path)) {
+                if (stream == null) {
+                    throw new Exception("Không tìm thấy file: " + path);
+                }
+                frames[i] = new Image(stream);
+            } catch (Exception e) {
+                System.err.println("Lỗi tải animation frame: " + e.getMessage());
+                success = false; // Nếu thiếu 1 frame, coi như hỏng cả
+                break;
+            }
+        }
+
+        if (!success) {
+            System.err.println("Không tải được animation cho: " + basePath);
+            return null; // Trả về null nếu tải lỗi
+        }
+
+        System.out.println("Tải thành công animation: " + basePath + " (" + frameCount + " frames)");
+        return frames;
+    }
+
+    public static Image[] getPowerUpAnimation(PowerUpType type) {
+        return powerUpAnimations.get(type);
     }
 }

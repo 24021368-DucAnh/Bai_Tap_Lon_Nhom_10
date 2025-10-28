@@ -11,14 +11,14 @@ public class BackgroundManager {
     private final Pane backgroundPane;
 
     public BackgroundManager(int width, int height) {
-        Image bgImage = new Image(getClass().getResource("/images/gamebg.jpg").toExternalForm());
-        Image topFrameImage = new Image(getClass().getResource("/images/frame_top.png").toExternalForm());
-        Image leftFrameImage = new Image(getClass().getResource("/images/frame_left.png").toExternalForm());
-        Image rightFrameImage = new Image(getClass().getResource("/images/frame_right.png").toExternalForm());
+        Image bgImage = new Image(getClass().getResource("/images/gamebg/gamebg.jpg").toExternalForm());
+        Image topFrameImage = new Image(getClass().getResource("/images/gamebg/frame_top.png").toExternalForm());
+        Image leftFrameImage = new Image(getClass().getResource("/images/gamebg/frame_left.png").toExternalForm());
+        Image rightFrameImage = new Image(getClass().getResource("/images/gamebg/frame_right.png").toExternalForm());
 
         // Tạo nền
         ImageView bgView = new ImageView(bgImage);
-        bgView.setFitWidth(width);  // Lấp đầy toàn bộ
+        bgView.setFitWidth(width);
         bgView.setFitHeight(height);
 
         // Khung trên
