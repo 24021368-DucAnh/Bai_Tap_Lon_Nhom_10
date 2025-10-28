@@ -6,6 +6,8 @@ import javafx.scene.input.MouseEvent;
 import org.example.arkanoid.UIUX.*;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -33,6 +35,10 @@ public class GameManager {
     private List<Brick> bricks = new ArrayList<>();
     private PowerUpManager powerUpManager;
 
+    private int currentStage = 1;
+    private boolean isGameWon = false;
+    private final int MAX_STAGES = 32;
+
     public GameManager(double gameWidth, double gameHeight, GameNavigator navigator) {
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
@@ -45,9 +51,18 @@ public class GameManager {
         ResourceManager.loadAllResources();
         this.gameUI = new GameUI(gameWidth, gameHeight);
         this.soundEffectManager = new SoundEffectManager();
+        this.powerUpManager = new PowerUpManager();
+        BrickSkinRegistry.initDefaults();
+
+        this.pauseScreen = new PauseScreen(gameWidth, gameHeight);
+        this.gameOverScreen = new GameOverScreen(gameWidth, gameHeight);
+
+        this.HP = 3;
+        this.isGameWon = false;
+        this.currentState = GameState.PLAYING;
 
         //---------Paddle-------------
-        final int PADDLE_WIDTH = 46; // Giảm kích thước paddle một chút cho dễ chơi
+        final int PADDLE_WIDTH = 1000; // Giảm kích thước paddle một chút cho dễ chơi
         final int PADDLE_HEIGHT = 20;
         final int PADDLE_OFFSET_FROM_BOTTOM = 100; // Cách lề dưới 1 khoảng y
 
@@ -88,6 +103,88 @@ public class GameManager {
 
         // Đặt trạng thái ban đầu
         this.currentState = GameState.PLAYING;
+
+        this.isGameWon = false;
+        this.currentState = GameState.PLAYING;
+        loadStage(1);
+    }
+
+    private void loadStage(int stageIndex) {
+        // Kiểm tra xem có vượt quá số màn tối đa không
+        if (stageIndex > MAX_STAGES) {
+            setGameWon(); // Nếu hết màn thì thắng
+            return;
+        }
+
+        this.currentStage = stageIndex;
+        System.out.println("Đang tải màn chơi: " + stageIndex);
+
+        // Tải gạch cho màn mới
+        this.bricks = StageLoader.loadFromIndex(stageIndex, this.gameWidth);
+
+        if (this.bricks == null || this.bricks.isEmpty()) {
+            // Nếu StageLoader trả về null hoặc rỗng (lỗi hoặc hết màn)
+            System.err.println("Không thể tải màn " + stageIndex + ". Kiểm tra file hoặc MAX_STAGES.");
+            // Bạn có thể chọn setGameWon() ở đây nếu muốn
+            setGameWon(); // Coi như thắng nếu không tải được màn tiếp
+        } else {
+            System.out.println("Tải thành công " + this.bricks.size() + " viên gạch cho màn " + stageIndex);
+            // Reset lại paddle và bóng
+            resetPaddleAndBalls();
+            // Cập nhật UI (nếu có)
+            if (gameUI != null) {
+                gameUI.updateStage(currentStage); // Giả sử GameUI có hàm này
+            }
+        }
+    }
+
+    private void resetPaddleAndBalls() {
+        //---------Paddle-------------
+        final int PADDLE_WIDTH = (int) ResourceManager.paddleImage.getWidth(); // Lấy từ ảnh
+        final int PADDLE_HEIGHT = (int) ResourceManager.paddleImage.getHeight();
+        final int PADDLE_OFFSET_FROM_BOTTOM = 100;
+
+        double initialPaddleX = (gameWidth - PADDLE_WIDTH) / 2.0;
+        double initialPaddleY = gameHeight - PADDLE_HEIGHT - PADDLE_OFFSET_FROM_BOTTOM;
+
+        // Nếu paddle chưa được tạo thì tạo mới, nếu có rồi thì chỉ đặt lại vị trí
+        if (this.paddle == null) {
+            this.paddle = new Paddle(
+                    initialPaddleX, initialPaddleY,
+                    PADDLE_WIDTH, PADDLE_HEIGHT,
+                    ResourceManager.paddleImage, this // Truyền GameManager vào Paddle
+            );
+        } else {
+            this.paddle.setX(initialPaddleX);
+            this.paddle.setY(initialPaddleY);
+            // TODO: Reset trạng thái power-up của paddle (ví dụ: kích thước) nếu cần
+            // this.paddle.resetSize();
+        }
+
+        //---------Ball-------------
+        // Xóa hết bóng cũ
+        this.balls.clear();
+        // Tạo một bóng mới ở giữa
+        spawnNewBall();
+    }
+
+    private void spawnNewBall() {
+        final int BALL_DIAMETER = 20;
+        final double BALL_SPEED = 250; // Tốc độ ban đầu
+        double initialBallX = gameWidth / 2.0;
+        // Đặt bóng ngay trên paddle hoặc giữa màn hình
+        double initialBallY = (paddle != null) ? paddle.getY() - BALL_DIAMETER : gameHeight / 2.0;
+
+        Ball newBall = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this);
+        this.balls.add(newBall);
+    }
+
+    public void setGameWon() {
+        this.currentState = GameState.PLAYING; // Tạm thời để vẽ win, có thể tạo state WINNING
+        this.isGameWon = true;
+        this.balls.clear(); // Xóa bóng khi thắng
+        System.out.println("Chúc mừng! Bạn đã phá đảo!");
+        // TODO: Có thể hiển thị màn hình chiến thắng thay vì chỉ chữ
     }
 
     //setGameOver
@@ -125,7 +222,7 @@ public class GameManager {
      * @param deltaTime
      */
     public void update(double deltaTime) {
-        if (currentState != GameState.PLAYING) {
+        if (currentState != GameState.PLAYING || isGameWon) {
             return;
         }
 
@@ -200,6 +297,31 @@ public class GameManager {
         // Đồng bộ HP từ GameManager sang GameUI
         if (this.gameUI != null) {
             this.gameUI.setLives(this.HP);
+        }
+
+        boolean stageComplete = true;
+        if (bricks.isEmpty()) { // Nhanh hơn nếu list rỗng
+            stageComplete = true;
+        } else {
+            for (Brick b : bricks) {
+                if (b.isDestructible()) { // Nếu còn gạch phá được
+                    stageComplete = false;
+                    break;
+                }
+            }
+        }
+
+
+        if (stageComplete && currentState == GameState.PLAYING && !isGameWon) {
+            System.out.println("Hoàn thành màn " + currentStage + "!");
+            // Dừng bóng và paddle tạm thời (tùy chọn)
+            // balls.clear(); // Hoặc dừng vận tốc bóng
+            // paddle.stopMoving();
+
+            // Tải màn tiếp theo
+            loadStage(currentStage + 1);
+            // Dừng việc update của frame này lại để tránh lỗi
+            return;
         }
     }
 
