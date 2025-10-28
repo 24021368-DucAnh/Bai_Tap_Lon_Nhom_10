@@ -95,6 +95,21 @@ public class Ball extends MovableObject {
     public void move() {
     }
 
+    public void scaleSpeed(double factor) {
+        // chỉ đổi độ lớn vector, giữ hướng
+        double vx = velocity.getX(), vy = velocity.getY();
+        double speed = Math.hypot(vx, vy);
+        if (speed == 0) return;
+        double newSpeed = Math.max(50, speed * factor);  // tránh =0
+        double nx = vx * (newSpeed / speed);
+        double ny = vy * (newSpeed / speed);
+        this.velocity = new Point2D(nx, ny);
+    }
+
+    public double currentSpeed() {
+        return Math.hypot(velocity.getX(), velocity.getY());
+    }
+
     @Override
     public void update(double deltaTime) {
         // Cập nhật vị trí dựa trên tốc độ, hướng và deltaTime
