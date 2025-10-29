@@ -11,6 +11,7 @@ public final class SoundEffectManager {
     private static AudioClip gameOverSound;
     private static AudioClip paddlePowerupSound;
     private static AudioClip roundStartSound;
+    private static AudioClip levelswitch;
 
     static {
         hitSound = loadClip("/sound/sound effect/hitsound.wav");
@@ -20,6 +21,7 @@ public final class SoundEffectManager {
         gameOverSound = loadClip("/sound/sound effect/Game Over.mp3");
         paddlePowerupSound = loadClip("/sound/sound effect/paddle powerup.wav");
         roundStartSound = loadClip("/sound/sound effect/Round Start.mp3");
+        levelswitch = loadClip("/sound/sound effect/switchlevel.mp3");
     }
 
     private SoundEffectManager() {
@@ -55,7 +57,7 @@ public final class SoundEffectManager {
      */
     public static void playBallPowerupSound() {
         if (ballPowerupSound != null) {
-            ballPowerupSound.play();
+            ballPowerupSound.play(1.5);
         }
     }
 
@@ -91,16 +93,25 @@ public final class SoundEffectManager {
      */
     public static void playPaddlePowerupSound() {
         if (paddlePowerupSound != null) {
-            paddlePowerupSound.play();
+            paddlePowerupSound.play(1.5);
         }
     }
 
     /**
-     * Phát âm thanh bắt đầu vòng mới.
+     * Phát âm thanh bắt đầu màn chơi.
      */
     public static void playRoundStartSound() {
         if (roundStartSound != null) {
             roundStartSound.play();
+        }
+    }
+
+    /**
+     * Phát âm thanh sang vòng mới.
+     */
+    public static void playLevelSwitchSound() {
+        if (levelswitch!= null) {
+            levelswitch.play();
         }
     }
 }

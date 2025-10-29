@@ -174,6 +174,7 @@ public class GameManager {
 
             // Tải màn tiếp theo
             loadStage(currentStage + 1);
+            SoundEffectManager.playLevelSwitchSound();
             // Dừng việc update của frame này lại để tránh lỗi
             return;
         }
