@@ -8,7 +8,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
-import org.example.arkanoid.core.ResourceManager;
 
 import java.net.URL;
 

@@ -93,7 +93,7 @@ public final class SoundEffectManager {
      */
     public static void playPaddlePowerupSound() {
         if (paddlePowerupSound != null) {
-            paddlePowerupSound.play(1.5);
+            paddlePowerupSound.play(2);
         }
     }
 

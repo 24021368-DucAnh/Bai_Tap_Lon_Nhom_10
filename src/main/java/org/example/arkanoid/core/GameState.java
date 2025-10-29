@@ -3,5 +3,6 @@ package org.example.arkanoid.core;
 public enum GameState {
     PLAYING,
     PAUSED,
-    GAME_OVER
+    GAME_OVER,
+    STAGE_TRANSITION
 }

@@ -3,7 +3,7 @@ package org.example.arkanoid.objects;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image; // THÊM IMPORT
-import org.example.arkanoid.core.ResourceManager; // THÊM IMPORT
+import org.example.arkanoid.UIUX.ResourceManager; // THÊM IMPORT
 import org.example.arkanoid.UIUX.SpriteAnimator;
 
 /**

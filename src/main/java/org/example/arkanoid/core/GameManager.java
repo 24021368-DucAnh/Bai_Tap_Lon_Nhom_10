@@ -16,12 +16,17 @@ public class GameManager {
     private final double gameWidth;
     private final double gameHeight;
     private int HP = 3;
-    private int score = 0;
+    private long score = 0;
 
     private GameState currentState = GameState.PLAYING;
     private final GameNavigator navigator; // Navigator gọi về Main
+
     private PauseScreen pauseScreen;
     private GameOverScreen gameOverScreen;
+    private StageClearScreen stageClearScreen;
+
+    private double stageTransitionTimer = 0;
+    private final double STAGE_TRANSITION_DURATION = 3.0;
 
     private Paddle paddle;
     private List<Ball> balls = new ArrayList<>();
@@ -41,7 +46,7 @@ public class GameManager {
     public void init() {
 
         //---------Paddle-------------
-        final int PADDLE_WIDTH = 100; // Giảm kích thước paddle một chút cho dễ chơi
+        final int PADDLE_WIDTH = 1000; // Giảm kích thước paddle một chút cho dễ chơi
         final int PADDLE_HEIGHT = 20;
         final int PADDLE_OFFSET_FROM_BOTTOM = 100; // Cách lề dưới 1 khoảng y
 
@@ -69,6 +74,9 @@ public class GameManager {
         //------ Game Over Screen -----
         this.gameOverScreen = new GameOverScreen(gameWidth, gameHeight);
 
+        //------ Stage Clear Screen -----
+        this.stageClearScreen = new StageClearScreen(gameWidth, gameHeight);
+
         // Đặt trạng thái ban đầu
         this.currentState = GameState.PLAYING;
 
@@ -81,7 +89,28 @@ public class GameManager {
      * @param deltaTime
      */
     public void update(double deltaTime) {
-        if (currentState != GameState.PLAYING || isGameWon) {
+        if (currentState == GameState.PAUSED || isGameWon) {
+            return;
+        }
+
+        // --- LOGIC MỚI CHO CHUYỂN MÀN ---
+        if (currentState == GameState.STAGE_TRANSITION) {
+            stageTransitionTimer -= deltaTime; // Đếm ngược
+            stageClearScreen.update(deltaTime); // Cập nhật hiệu ứng "Loading..."
+
+            if (stageTransitionTimer <= 0) {
+                // Hết giờ, tải màn tiếp theo (currentStage đang là màn vừa xong)
+                loadStage(currentStage + 1);
+
+                // Nếu loadStage không setGameWon (tức là vẫn còn màn)
+                if (!isGameWon) {
+                    currentState = GameState.PLAYING; // Bắt đầu chơi màn mới
+                }
+            }
+            return; // Dừng update game logic khi đang chuyển màn
+        }
+
+        if (currentState == GameState.GAME_OVER) {
             return;
         }
 
@@ -116,7 +145,7 @@ public class GameManager {
                         if (isDestroyed) {
                             powerUpManager.trySpawnPowerUp(brick);
                             brickWasDestroyed = true; // Đánh dấu là gạch này đã vỡ
-                            int points = 100; // Thêm điểm
+                            long points = 100; // Thêm điểm
                             this.score += points;
                         }
 
@@ -168,14 +197,17 @@ public class GameManager {
 
         if (stageComplete && currentState == GameState.PLAYING && !isGameWon) {
             System.out.println("Hoàn thành màn " + currentStage + "!");
-            // Dừng bóng và paddle tạm thời (tùy chọn)
-            // balls.clear(); // Hoặc dừng vận tốc bóng
-            // paddle.stopMoving();
 
-            // Tải màn tiếp theo
-            loadStage(currentStage + 1);
+            currentState = GameState.STAGE_TRANSITION; // Đổi state
+            stageTransitionTimer = STAGE_TRANSITION_DURATION; // Đặt hẹn giờ
+            stageClearScreen.reset(); // Reset hiệu ứng "Loading..."
+
+            balls.clear(); // Xóa bóng cũ
+            // Tùy chọn: Xóa các power-up đang rơi
+            // powerUpManager.clearAll();
+
             SoundEffectManager.playLevelSwitchSound();
-            // Dừng việc update của frame này lại để tránh lỗi
+
             return;
         }
     }
@@ -200,10 +232,13 @@ public class GameManager {
 
         // Vẽ các lớp UI
         if (currentState == GameState.GAME_OVER) {
-            int finalScore = this.score;  // Lấy điểm thật
+            long finalScore = this.score;
             gameOverScreen.render(gc, finalScore);
         } else if (currentState == GameState.PAUSED) {
             pauseScreen.render(gc);
+        } else if (currentState == GameState.STAGE_TRANSITION) { // <-- THÊM MỚI
+            // Vẽ màn hình chờ, currentStage vẫn là màn vừa hoàn thành
+            stageClearScreen.render(gc, currentStage);
         }
     }
 
@@ -217,7 +252,7 @@ public class GameManager {
         return this.HP;
     }
 
-    public int getScore() {
+    public long getScore() {
         return this.score;
     }
 
@@ -336,7 +371,7 @@ public class GameManager {
     public void handleKeyEvent(KeyEvent event) {
         KeyCode code = event.getCode();
 
-        if (currentState == GameState.GAME_OVER) {
+        if (currentState == GameState.GAME_OVER || currentState == GameState.STAGE_TRANSITION) {
             return;
         }
 
@@ -371,6 +406,10 @@ public class GameManager {
      * Xử lý sự kiện click chuột.
      */
     public void handleMouseClick(MouseEvent event) {
+        if (currentState == GameState.STAGE_TRANSITION) {
+            return;
+        }
+
         if (currentState == GameState.PAUSED) {
             PauseAction action = pauseScreen.handleMouseClick(event);
 
@@ -410,6 +449,9 @@ public class GameManager {
      * Xử lý sự kiện di chuyển chuột.
      */
     public void handleMouseMove(MouseEvent event) {
+        if (currentState == GameState.STAGE_TRANSITION) {
+            return;
+        }
         if (currentState == GameState.PAUSED) {
             pauseScreen.handleMouseMove(event);
         } else if (currentState == GameState.GAME_OVER) {

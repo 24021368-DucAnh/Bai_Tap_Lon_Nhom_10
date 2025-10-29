@@ -1,4 +1,4 @@
-package org.example.arkanoid.core;
+package org.example.arkanoid.UIUX;
 
 import javafx.scene.image.Image;
 import javafx.scene.text.Font;

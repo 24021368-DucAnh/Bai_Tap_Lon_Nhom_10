@@ -4,14 +4,13 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
-import org.example.arkanoid.core.ResourceManager;
 
 public class GameUI {
     private double iconWidth = 40;
     private double iconHeight = 40;
 
     // TRẠNG THÁI
-    private int score;
+    private long score;
     private int lives;
     private int currentStage = 1;
 
@@ -27,7 +26,7 @@ public class GameUI {
         this.lives = 3; // Mặc định
     }
 
-    public void setScore (int score) {
+    public void setScore (long score) {
         this.score = score;
     }
 
