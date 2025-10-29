@@ -20,14 +20,15 @@ public class Paddle extends MovableObject {
     private final double POWER_UP_DURATION = 10.0;
     private double growTimer;
     private final int originalWidth;
+    private final double gameBoundWidth;
 
-    public Paddle(double x, double y, int width, int height, Image image, GameManager gameManager) {
+    public Paddle(double x, double y, int width, int height, Image image, GameManager gameManager, double gameBoundWidth) {
         // Paddle chỉ di chuyển theo chiều ngang => dY ban đầu là 0
         super(x, y, width, height, 0, 0);
         this.speed = initialSpeed;
         this.image = image;
         this.gameManager = gameManager;
-
+        this.gameBoundWidth = gameBoundWidth;
         this.originalWidth = width;
         //this.currentPowerUp = null;
         //this.powerUpDurationLeft = 0;
@@ -65,7 +66,7 @@ public class Paddle extends MovableObject {
 
         // Giới hạn paddle trong màn hình
         if (x < 0) x = 0;
-        if (x + width > 600) x = 600 - width;
+        if (x + width > this.gameBoundWidth) x = this.gameBoundWidth - width;
     }
 
     public void applyPowerUp(PowerUpType powerUpType) {

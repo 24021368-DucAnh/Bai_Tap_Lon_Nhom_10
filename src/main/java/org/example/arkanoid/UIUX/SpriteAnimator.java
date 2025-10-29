@@ -1,4 +1,4 @@
-package org.example.arkanoid.core; // Hoặc package của bạn
+package org.example.arkanoid.UIUX; // Hoặc package của bạn
 
 import javafx.scene.image.Image;
 

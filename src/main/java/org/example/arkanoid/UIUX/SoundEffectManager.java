@@ -9,7 +9,6 @@ public final class SoundEffectManager {
     private static AudioClip deathSound;
     private static AudioClip extraLifeSound;
     private static AudioClip gameOverSound;
-    private static AudioClip gameStartSound;
     private static AudioClip paddlePowerupSound;
     private static AudioClip roundStartSound;
 
