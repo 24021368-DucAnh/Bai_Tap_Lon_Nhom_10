@@ -13,7 +13,7 @@ import org.example.arkanoid.core.GameLoop;
 import org.example.arkanoid.core.GameManager;
 import javafx.scene.canvas.Canvas;
 import org.example.arkanoid.core.GameNavigator;
-import org.example.arkanoid.core.ResourceManager;
+import org.example.arkanoid.UIUX.ResourceManager;
 
 public class Main extends Application implements GameNavigator {
     private final int WINDOW_WIDTH = 700;

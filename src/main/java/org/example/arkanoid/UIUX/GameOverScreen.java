@@ -6,7 +6,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
-import org.example.arkanoid.core.ResourceManager;
 
 public class GameOverScreen {
 
@@ -65,7 +64,7 @@ public class GameOverScreen {
      * @param gc GraphicsContext
      * @param score Điểm số cuối cùng (truyền từ GameUI)
      */
-    public void render(GraphicsContext gc, int score) {
+    public void render(GraphicsContext gc, long score) {
         // Vẽ lớp nền mờ
         gc.setFill(new Color(0, 0, 0, 0.8)); // Tối hơn một chút so với pause
         gc.fillRect(0, 0, gameWidth, gameHeight);

@@ -9,7 +9,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
-import org.example.arkanoid.core.ResourceManager;
 
 public class PauseScreen {
 
