@@ -4,7 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.image.Image; // THÊM IMPORT
 import org.example.arkanoid.core.ResourceManager; // THÊM IMPORT
-import org.example.arkanoid.core.SpriteAnimator;
+import org.example.arkanoid.UIUX.SpriteAnimator;
 
 /**
  * Đại diện cho một vật phẩm Power-up đang rơi trên màn hình.

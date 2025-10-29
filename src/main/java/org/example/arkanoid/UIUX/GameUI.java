@@ -2,6 +2,7 @@ package org.example.arkanoid.UIUX;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import org.example.arkanoid.core.ResourceManager;
 
@@ -12,12 +13,12 @@ public class GameUI {
     // TRẠNG THÁI
     private int score;
     private int lives;
+    private int currentStage = 1;
 
     // VỊ TRÍ
     private final double gameWidth;
     private final double gameHeight;
     private final double margin = 15.0; // Khoảng cách lề
-    private final double bottomPadding = 15.0; // Khoảng cách lề dưới
 
     public GameUI(double gameWidth, double gameHeight) {
         this.gameWidth = gameWidth;
@@ -26,88 +27,83 @@ public class GameUI {
         this.lives = 3; // Mặc định
     }
 
-    public void addScore(int points) {
-        this.score += points;
+    public void setScore (int score) {
+        this.score = score;
     }
 
     public void setLives(int lives) {
         this.lives = lives;
     }
 
-    public void addLives(int lives) {
-        if (this.lives < 3) {
-            this.lives++;
-        }
-    }
-
-    public void loseLife() {
-        if (this.lives > 0) {
-            this.lives--;
-        }
-    }
-
-    public int getScore() {
-        return this.score;
-    }
-
     public void render(GraphicsContext gc) {
 
-        // Vị trí Y cách ở dưới bottomPadding
-        double yPos = gameHeight - bottomPadding;
+        gc.clearRect(0, 0, gameWidth, gameHeight);
 
-        // Vẽ Máu (Góc dưới bên trái)
-        double xIconPos = gameWidth - margin;
+        // --- Vị trí chung ---
+        // Căn chỉnh lề trên
+        double topAlignY = 20.0;
+
+        double line1Y = topAlignY + 20; // Baseline cho dòng 1 (SCORE, STAGE)
+        double line2Y = line1Y + 25; // Baseline cho dòng 2 (Số)
+
+        double iconTopY = topAlignY - 10;
+
         gc.setFont(ResourceManager.uiFont);
+        Font oldFont = gc.getFont();
+        Font biggerFont = oldFont;
+
+        if (ResourceManager.uiFont != null) {
+            biggerFont = Font.font(ResourceManager.uiFont.getFamily(), ResourceManager.uiFont.getSize() + 4);
+        }
+
+        // Vẽ Score
+        gc.setFill(Color.RED);
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setFont(oldFont);
+        gc.fillText("SCORE", margin, line1Y);
+
+        // Điểm
+        gc.setFill(Color.WHITE);
+        gc.setFont(biggerFont); // Dùng font to
+        gc.fillText(String.valueOf(this.score), margin, line2Y);
+
+
+        // Vẽ Stage
+        gc.setFill(Color.RED);
+        gc.setTextAlign(TextAlignment.CENTER);
+        double centerX = gameWidth / 2;
+        gc.setFont(oldFont);
+        gc.fillText("STAGE", centerX, line1Y);
+
+        // Màn đang chơi
+        gc.setFill(Color.WHITE);
+        gc.setFont(biggerFont); // Dùng font to
+        gc.fillText(String.valueOf(this.currentStage), centerX, line2Y);
+
+        gc.setFont(oldFont);
+
+        // Vẽ Máu
+        //dự phòng
+        gc.setFill(Color.WHITE);
+        double xIconPos = gameWidth - margin;
         gc.setTextAlign(TextAlignment.RIGHT);
 
         if (ResourceManager.lifeIcon != null) {
-            // Vẽ bằng ảnh
             double spacing = 5; // 5px giữa các icon
-            // Căn icon nằm ngay trên baseline của text
-            double iconY = yPos - iconHeight;
 
             for (int i = 0; i < lives; i++) {
-                double iconX = xIconPos - (i + 1) * iconWidth - i * spacing;
-                gc.drawImage(ResourceManager.lifeIcon, iconX, iconY);
+                // Vẽ từ PHẢI sang TRÁI
+                double iconX = xIconPos - (i + 1) * this.iconWidth - i * spacing;
+                gc.drawImage(ResourceManager.lifeIcon, iconX, iconTopY, this.iconWidth, this.iconHeight);
             }
         } else {
-            // Dự phòng
+            // Dự phòng nếu không có ảnh
             String livesText = "LIVES: " + this.lives;
-
-            // Vẽ bóng
-            gc.setFill(new Color(0, 0, 0, 0.7));
-            gc.fillText(livesText, margin + 2, yPos + 2);
-
-            // Vẽ chữ
-            gc.setFill(Color.WHITE);
-            gc.fillText(livesText, margin, yPos);
+            gc.fillText(livesText, xIconPos, line1Y);
         }
-
-        //Vẽ Điểm (Góc dưới bên phải)
-        String scoreText = "SCORE: " + this.score;
-        double xScorePos = margin; // Vị trí X
-
-        gc.setTextAlign(TextAlignment.LEFT);
-
-        // Vẽ bóng
-        gc.setFill(new Color(0, 0, 0, 0.7));
-        gc.fillText(scoreText, xScorePos + 2, yPos + 2);
-
-        // Vẽ chữ
-        gc.setFill(Color.WHITE);
-        gc.fillText(scoreText, xScorePos, yPos);
-
-        gc.setFill(Color.WHITE);
-        gc.setFont(ResourceManager.uiFont); // Dùng font UI
-        gc.setTextAlign(TextAlignment.RIGHT); // Căn lề phải chẳng hạn
-        gc.fillText("Stage: " + currentStage, gameWidth - 20, 30); // Vẽ ở góc trên bên phải
-        gc.setTextAlign(TextAlignment.LEFT);
     }
 
-    private int currentStage = 1;
     public void updateStage(int stage) {
         this.currentStage = stage;
-        // Bạn không cần vẽ lại ngay lập tức ở đây,
-        // hàm render() sẽ tự động vẽ giá trị mới này mỗi frame.
     }
 }
