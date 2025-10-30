@@ -9,7 +9,6 @@ import org.example.arkanoid.UIUX.SpriteAnimator;
 /**
  * Đại diện cho một vật phẩm Power-up đang rơi trên màn hình.
  */
-// Sửa lại để kế thừa từ MovableObject
 public class PowerUp extends MovableObject {
 
     private final PowerUpType type;
@@ -18,7 +17,6 @@ public class PowerUp extends MovableObject {
     // THÊM MỚI: Tốc độ animation (ví dụ: 0.1s/frame = 10fps)
     private static final double ANIMATION_SPEED = 0.1;
 
-    // Sửa lại constructor cho đúng
     public PowerUp(double x, double y, PowerUpType type) {
         super(x, y, 0, 0); // Gọi constructor của MovableObject
         this.type = type;
@@ -44,10 +42,9 @@ public class PowerUp extends MovableObject {
 
     @Override
     public void update(double dt) {
-        // Gọi phương thức move(dt) từ lớp cha để nó tự động rơi xuống
         move(dt);
 
-        // THAY ĐỔI: Cập nhật animator
+        // Cập nhật animator
         if (animator != null) {
             animator.update(dt);
         }
@@ -59,7 +56,7 @@ public class PowerUp extends MovableObject {
             Image frame = animator.getFrame();
             if (frame != null) {
                 gc.drawImage(frame, this.x, this.y, this.width, this.height);
-                return; // Đã vẽ xong
+                return;
             }
         }
 
@@ -75,7 +72,7 @@ public class PowerUp extends MovableObject {
             case ADD_LIFE -> Color.LIGHTPINK;
             case ADD_BALL -> Color.LIGHTBLUE;
             case PADDLE_GROW -> Color.LIGHTGREEN;
-            default -> Color.YELLOW; // Thêm default để tránh lỗi
+            default -> Color.YELLOW;
         };
     }
 

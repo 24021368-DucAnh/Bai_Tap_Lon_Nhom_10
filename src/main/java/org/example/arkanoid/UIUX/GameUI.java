@@ -43,7 +43,7 @@ public class GameUI {
         double topAlignY = 20.0;
 
         double line1Y = topAlignY + 20; // Baseline cho dòng 1 (SCORE, STAGE)
-        double line2Y = line1Y + 25; // Baseline cho dòng 2 (Số)
+        double line2Y = line1Y + 35; // Baseline cho dòng 2 (Số)
 
         double iconTopY = topAlignY - 10;
 
