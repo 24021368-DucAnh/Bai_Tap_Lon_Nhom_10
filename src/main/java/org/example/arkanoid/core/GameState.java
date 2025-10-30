@@ -4,5 +4,7 @@ public enum GameState {
     PLAYING,
     PAUSED,
     GAME_OVER,
-    STAGE_TRANSITION
+    STAGE_TRANSITION,
+    QUIT_MENU,
+    SCOREBOARD
 }

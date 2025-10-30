@@ -24,6 +24,8 @@ public class GameManager {
     private PauseScreen pauseScreen;
     private GameOverScreen gameOverScreen;
     private StageClearScreen stageClearScreen;
+    private QuitScreen quitScreen;
+    private ScoreboardScreen scoreboardScreen;
 
     private double stageTransitionTimer = 0;
     private final double STAGE_TRANSITION_DURATION = 3.0;
@@ -46,8 +48,8 @@ public class GameManager {
     public void init() {
 
         //---------Paddle-------------
-        final int PADDLE_WIDTH = 1000; // Giảm kích thước paddle một chút cho dễ chơi
-        final int PADDLE_HEIGHT = 20;
+        final int PADDLE_WIDTH = (int) ResourceManager.paddleImage.getWidth();
+        final int PADDLE_HEIGHT = (int) ResourceManager.paddleImage.getHeight();
         final int PADDLE_OFFSET_FROM_BOTTOM = 100; // Cách lề dưới 1 khoảng y
 
         // Hình ảnh paddle có thể cần điều chỉnh lại cho phù hợp với W/H mới
@@ -77,6 +79,12 @@ public class GameManager {
         //------ Stage Clear Screen -----
         this.stageClearScreen = new StageClearScreen(gameWidth, gameHeight);
 
+        //------ Quit Screen -----
+        this.quitScreen = new QuitScreen(gameWidth, gameHeight);
+
+        //------ Scoreboard Screen -----
+        this.scoreboardScreen = new ScoreboardScreen(gameWidth, gameHeight);
+
         // Đặt trạng thái ban đầu
         this.currentState = GameState.PLAYING;
 
@@ -89,28 +97,25 @@ public class GameManager {
      * @param deltaTime
      */
     public void update(double deltaTime) {
-        if (currentState == GameState.PAUSED || isGameWon) {
+        if (currentState == GameState.PAUSED
+                || isGameWon
+                || currentState == GameState.GAME_OVER
+                || currentState == GameState.QUIT_MENU
+                || currentState == GameState.SCOREBOARD) {
             return;
         }
 
-        // --- LOGIC MỚI CHO CHUYỂN MÀN ---
         if (currentState == GameState.STAGE_TRANSITION) {
             stageTransitionTimer -= deltaTime; // Đếm ngược
-            stageClearScreen.update(deltaTime); // Cập nhật hiệu ứng "Loading..."
+            stageClearScreen.update(deltaTime);
 
             if (stageTransitionTimer <= 0) {
-                // Hết giờ, tải màn tiếp theo (currentStage đang là màn vừa xong)
                 loadStage(currentStage + 1);
 
-                // Nếu loadStage không setGameWon (tức là vẫn còn màn)
                 if (!isGameWon) {
                     currentState = GameState.PLAYING; // Bắt đầu chơi màn mới
                 }
             }
-            return; // Dừng update game logic khi đang chuyển màn
-        }
-
-        if (currentState == GameState.GAME_OVER) {
             return;
         }
 
@@ -183,7 +188,7 @@ public class GameManager {
         powerUpManager.update(deltaTime, gameHeight, paddle);
 
         boolean stageComplete = true;
-        if (bricks.isEmpty()) { // Nhanh hơn nếu list rỗng
+        if (bricks.isEmpty()) {
             stageComplete = true;
         } else {
             for (Brick b : bricks) {
@@ -198,13 +203,11 @@ public class GameManager {
         if (stageComplete && currentState == GameState.PLAYING && !isGameWon) {
             System.out.println("Hoàn thành màn " + currentStage + "!");
 
-            currentState = GameState.STAGE_TRANSITION; // Đổi state
+            currentState = GameState.STAGE_TRANSITION;
             stageTransitionTimer = STAGE_TRANSITION_DURATION; // Đặt hẹn giờ
             stageClearScreen.reset(); // Reset hiệu ứng "Loading..."
 
-            balls.clear(); // Xóa bóng cũ
-            // Tùy chọn: Xóa các power-up đang rơi
-            // powerUpManager.clearAll();
+            balls.clear();
 
             SoundEffectManager.playLevelSwitchSound();
 
@@ -231,14 +234,21 @@ public class GameManager {
         }
 
         // Vẽ các lớp UI
-        if (currentState == GameState.GAME_OVER) {
-            long finalScore = this.score;
-            gameOverScreen.render(gc, finalScore);
-        } else if (currentState == GameState.PAUSED) {
-            pauseScreen.render(gc);
-        } else if (currentState == GameState.STAGE_TRANSITION) { // <-- THÊM MỚI
-            // Vẽ màn hình chờ, currentStage vẫn là màn vừa hoàn thành
-            stageClearScreen.render(gc, currentStage);
+        switch (currentState) {
+            case GAME_OVER:
+                gameOverScreen.render(gc, this.score);
+                break;
+            case PAUSED:
+                pauseScreen.render(gc);
+                break;
+            case STAGE_TRANSITION:
+                stageClearScreen.render(gc, currentStage);
+                break;
+            case QUIT_MENU:
+                quitScreen.render(gc, this.score);
+                break;
+            case SCOREBOARD:
+                scoreboardScreen.render(gc);
         }
     }
 
@@ -331,11 +341,14 @@ public class GameManager {
     }
 
     public void setGameWon() {
-        this.currentState = GameState.PLAYING; // Tạm thời để vẽ win, có thể tạo state WINNING
         this.isGameWon = true;
-        this.balls.clear(); // Xóa bóng khi thắng
+        this.balls.clear();
         System.out.println("Chúc mừng! Bạn đã phá đảo!");
-        // TODO: Có thể hiển thị màn hình chiến thắng thay vì chỉ chữ
+
+        // Chuyển sang màn hình Scoreboard
+        scoreboardScreen.setNewScore(this.score); // Báo điểm
+        scoreboardScreen.reset();
+        currentState = GameState.SCOREBOARD;
     }
 
     //setGameOver
@@ -371,7 +384,10 @@ public class GameManager {
     public void handleKeyEvent(KeyEvent event) {
         KeyCode code = event.getCode();
 
-        if (currentState == GameState.GAME_OVER || currentState == GameState.STAGE_TRANSITION) {
+        if (currentState == GameState.GAME_OVER
+                || currentState == GameState.STAGE_TRANSITION
+                || currentState == GameState.QUIT_MENU
+                || currentState == GameState.SCOREBOARD) {
             return;
         }
 
@@ -379,26 +395,31 @@ public class GameManager {
         if (event.getEventType() == KeyEvent.KEY_PRESSED && code == KeyCode.ESCAPE) {
             if (currentState == GameState.PLAYING) {
                 currentState = GameState.PAUSED;
-                pauseScreen.reset(); // Reset trạng thái hover của nút
+                pauseScreen.reset();
             } else if (currentState == GameState.PAUSED) {
                 currentState = GameState.PLAYING;
             }
             return;
         }
 
-        if (currentState == GameState.PAUSED) {
-            return;
-        }
+        switch (currentState) {
+            case PLAYING:
+                // Chỉ xử lý di chuyển khi đang PLAYING
+                boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
+                if (code == KeyCode.A || code == KeyCode.LEFT) {
+                    paddle.setMovingLeft(isPressed);
+                } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
+                    paddle.setMovingRight(isPressed);
+                }
+                break;
 
-
-        // Nếu đang PLAYING, xử lý paddle
-        if (currentState == GameState.PLAYING) {
-            boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
-            if (code == KeyCode.A || code == KeyCode.LEFT) {
-                paddle.setMovingLeft(isPressed);
-            } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
-                paddle.setMovingRight(isPressed);
-            }
+            case PAUSED:
+            case GAME_OVER:
+            case STAGE_TRANSITION:
+            case QUIT_MENU:
+            case SCOREBOARD:
+            default:
+                break; // Không làm gì cả
         }
     }
 
@@ -406,42 +427,58 @@ public class GameManager {
      * Xử lý sự kiện click chuột.
      */
     public void handleMouseClick(MouseEvent event) {
-        if (currentState == GameState.STAGE_TRANSITION) {
-            return;
-        }
-
-        if (currentState == GameState.PAUSED) {
-            PauseAction action = pauseScreen.handleMouseClick(event);
-
-            switch (action) {
-                case RESUME:
-                    currentState = GameState.PLAYING;
-                    break;
-                case GOTO_MENU:
-                    if (navigator != null) {
-                        navigator.goToStartScreen();
-                    }
-                    break;
-                case NONE:
-                    break;
-            }
-        }
-        else if (currentState == GameState.GAME_OVER) {
-            if (gameOverScreen != null) {
-                GameOverAction action = gameOverScreen.handleMouseClick(event);
-                switch (action) {
-                    case RETRY:
-                        if (navigator != null) {
-                            navigator.retryGame();
-                        }
+        switch (currentState) {
+            case PAUSED:
+                PauseAction pAction = pauseScreen.handleMouseClick(event);
+                switch (pAction) {
+                    case RESUME:
+                        currentState = GameState.PLAYING;
                         break;
                     case GOTO_MENU:
-                        if (navigator != null) {
-                            navigator.goToStartScreen();
-                        }
+                        currentState = GameState.QUIT_MENU;
+                        quitScreen.reset();
                         break;
                 }
-            }
+                break;
+
+            case GAME_OVER:
+                GameOverAction goAction = gameOverScreen.handleMouseClick(event);
+                switch (goAction) {
+                    case RETRY:
+                        if (navigator != null) navigator.retryGame();
+                        break;
+                    case GOTO_MENU:
+                        currentState = GameState.QUIT_MENU;
+                        quitScreen.reset();
+                        break;
+                }
+                break;
+
+            case QUIT_MENU:
+                QuitAction qAction = quitScreen.handleMouseClick(event);
+                switch (qAction) {
+                    case YES:
+                        scoreboardScreen.setNewScore(this.score);
+                        scoreboardScreen.reset();
+                        currentState = GameState.SCOREBOARD;
+                        break;
+                    case NO:
+                        if (navigator != null) navigator.goToStartScreen();
+                        break;
+                }
+                break;
+
+            case SCOREBOARD:
+                ScoreboardAction sAction = scoreboardScreen.handleMouseClick(event);
+                if (sAction == ScoreboardAction.GOTO_MENU) {
+                    if (navigator != null) navigator.goToStartScreen();
+                }
+                break;
+
+            case PLAYING:
+            case STAGE_TRANSITION:
+            default:
+                break;
         }
     }
 
@@ -449,15 +486,24 @@ public class GameManager {
      * Xử lý sự kiện di chuyển chuột.
      */
     public void handleMouseMove(MouseEvent event) {
-        if (currentState == GameState.STAGE_TRANSITION) {
-            return;
-        }
-        if (currentState == GameState.PAUSED) {
-            pauseScreen.handleMouseMove(event);
-        } else if (currentState == GameState.GAME_OVER) {
-            if (gameOverScreen != null) {
+        switch (currentState) {
+            case PAUSED:
+                pauseScreen.handleMouseMove(event);
+                break;
+            case GAME_OVER:
                 gameOverScreen.handleMouseMove(event);
-            }
+                break;
+            case QUIT_MENU:
+                quitScreen.handleMouseMove(event);
+                break;
+            case SCOREBOARD:
+                scoreboardScreen.handleMouseMove(event);
+                break;
+
+            case PLAYING:
+            case STAGE_TRANSITION:
+            default:
+                break;
         }
     }
 }
