@@ -81,6 +81,8 @@ public class GameOverScreen {
         gc.fillText("Your Score: " + score, gameWidth / 2.0, gameHeight / 2.0 - 20);
 
         // Vẽ các nút
+        gc.setFont(ResourceManager.buttonFont);
+        gc.setFill(Color.WHITE);
         for (int i = 0; i < options.length; i++) {
             Rectangle2D rect = buttonRects[i];
 

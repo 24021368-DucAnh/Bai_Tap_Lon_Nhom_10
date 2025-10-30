@@ -73,7 +73,7 @@ public class ResourceManager {
         // Tải Font UI
         try (InputStream fontStream = ResourceManager.class.getResourceAsStream(FONT_PATH)) {
             if (fontStream == null) throw new Exception("Không tìm thấy font: " + FONT_PATH);
-            uiFont = Font.loadFont(fontStream, 24);
+            uiFont = Font.loadFont(fontStream, 30);
         } catch (Exception e) {
             System.err.println("Lỗi tải font UI: " + e.getMessage());
             uiFont = Font.font("Arial", FontWeight.BOLD, 24);
