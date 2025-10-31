@@ -7,18 +7,13 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 
-public class GameOverScreen {
-
-    private final double gameWidth;
-    private final double gameHeight;
-
+public class GameOverScreen extends UIScreen{
     private final String[] options = {"Retry", "Return to Menu"};
     private final Rectangle2D[] buttonRects;
-    private int hoverIndex = -1;
 
+    private long score = 0;
     public GameOverScreen(double gameWidth, double gameHeight) {
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
+        super(gameWidth,gameHeight);
         this.buttonRects = new Rectangle2D[options.length];
 
         final double BUTTON_WIDTH = 350;
@@ -49,6 +44,7 @@ public class GameOverScreen {
         return GameOverAction.NONE;
     }
 
+    @Override
     public void handleMouseMove(MouseEvent event) {
         hoverIndex = -1;
         for (int i = 0; i < buttonRects.length; i++) {
@@ -61,10 +57,9 @@ public class GameOverScreen {
 
     /**
      * Vẽ màn hình Game Over.
-     * @param gc GraphicsContext
-     * @param score Điểm số cuối cùng (truyền từ GameUI)
      */
-    public void render(GraphicsContext gc, long score) {
+    @Override
+    public void render(GraphicsContext gc) {
         // Vẽ lớp nền mờ
         gc.setFill(new Color(0, 0, 0, 0.8)); // Tối hơn một chút so với pause
         gc.fillRect(0, 0, gameWidth, gameHeight);
@@ -106,7 +101,12 @@ public class GameOverScreen {
         gc.setTextBaseline(VPos.BASELINE);
     }
 
+    @Override
     public void reset() {
-        this.hoverIndex = -1;
+       super.reset();
+    }
+
+    public void setScore(long score) {
+        this.score = score;
     }
 }

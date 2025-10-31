@@ -48,7 +48,7 @@ public class GameManager {
     public void init() {
 
         //---------Paddle-------------
-        final int PADDLE_WIDTH = (int) ResourceManager.paddleImage.getWidth();
+        final int PADDLE_WIDTH = 1000;//(int) ResourceManager.paddleImage.getWidth();
         final int PADDLE_HEIGHT = (int) ResourceManager.paddleImage.getHeight();
         final int PADDLE_OFFSET_FROM_BOTTOM = 100; // Cách lề dưới 1 khoảng y
 
@@ -205,6 +205,7 @@ public class GameManager {
 
             currentState = GameState.STAGE_TRANSITION;
             stageTransitionTimer = STAGE_TRANSITION_DURATION; // Đặt hẹn giờ
+            stageClearScreen.setStageCompleted(currentStage);
             stageClearScreen.reset(); // Reset hiệu ứng "Loading..."
 
             balls.clear();
@@ -236,16 +237,16 @@ public class GameManager {
         // Vẽ các lớp UI
         switch (currentState) {
             case GAME_OVER:
-                gameOverScreen.render(gc, this.score);
+                gameOverScreen.render(gc);
                 break;
             case PAUSED:
                 pauseScreen.render(gc);
                 break;
             case STAGE_TRANSITION:
-                stageClearScreen.render(gc, currentStage);
+                stageClearScreen.render(gc);
                 break;
             case QUIT_MENU:
-                quitScreen.render(gc, this.score);
+                quitScreen.render(gc);
                 break;
             case SCOREBOARD:
                 scoreboardScreen.render(gc);
@@ -358,6 +359,7 @@ public class GameManager {
     public void setGameOver() {
         this.currentState = GameState.GAME_OVER;
         if (this.gameOverScreen != null) { // Thêm kiểm tra an toàn
+            this.gameOverScreen.setScore(this.score);
             this.gameOverScreen.reset(); // Reset hover cho nút
         }
         System.out.println("GameOver !");
@@ -384,26 +386,15 @@ public class GameManager {
     public void handleKeyEvent(KeyEvent event) {
         KeyCode code = event.getCode();
 
-        if (currentState == GameState.GAME_OVER
-                || currentState == GameState.STAGE_TRANSITION
-                || currentState == GameState.QUIT_MENU
-                || currentState == GameState.SCOREBOARD) {
-            return;
-        }
-
-        //Xử lý Pause/Unpause
-        if (event.getEventType() == KeyEvent.KEY_PRESSED && code == KeyCode.ESCAPE) {
-            if (currentState == GameState.PLAYING) {
-                currentState = GameState.PAUSED;
-                pauseScreen.reset();
-            } else if (currentState == GameState.PAUSED) {
-                currentState = GameState.PLAYING;
-            }
-            return;
-        }
-
         switch (currentState) {
             case PLAYING:
+                // Xử lý Pause
+                if (event.getEventType() == KeyEvent.KEY_PRESSED && code == KeyCode.ESCAPE) {
+                    currentState = GameState.PAUSED;
+                    pauseScreen.reset();
+                    return;
+                }
+
                 // Chỉ xử lý di chuyển khi đang PLAYING
                 boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
                 if (code == KeyCode.A || code == KeyCode.LEFT) {
@@ -414,6 +405,11 @@ public class GameManager {
                 break;
 
             case PAUSED:
+                PauseAction pAction = pauseScreen.handleKeyInput(event);
+                if (pAction == PauseAction.RESUME) {
+                    currentState = GameState.PLAYING;
+                }
+                break;
             case GAME_OVER:
             case STAGE_TRANSITION:
             case QUIT_MENU:
@@ -435,8 +431,9 @@ public class GameManager {
                         currentState = GameState.PLAYING;
                         break;
                     case GOTO_MENU:
-                        currentState = GameState.QUIT_MENU;
+                        quitScreen.setScore(this.score);
                         quitScreen.reset();
+                        currentState = GameState.QUIT_MENU;
                         break;
                 }
                 break;
@@ -448,8 +445,9 @@ public class GameManager {
                         if (navigator != null) navigator.retryGame();
                         break;
                     case GOTO_MENU:
-                        currentState = GameState.QUIT_MENU;
+                        quitScreen.setScore(this.score);
                         quitScreen.reset();
+                        currentState = GameState.QUIT_MENU;
                         break;
                 }
                 break;

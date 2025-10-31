@@ -96,9 +96,7 @@ public class ResourceManager {
             lifeIcon = null;
         }
 
-        // --- THÊM MỚI: TẢI ANIMATION POWER-UP ---
-        // (Bạn cần thay đổi tên file "add_life", "add_ball" cho khớp với file của bạn)
-        // (Giả định mỗi cái có 8 frame)
+        // --- ANIMATION POWER-UP ---
 
         // Tải 8 frame cho ADD_LIFE (ví dụ: /images/powerups/add_life_1.png -> 8)
         powerUpAnimations.put(PowerUpType.PADDLE_GROW,
@@ -132,7 +130,7 @@ public class ResourceManager {
 
         if (!success) {
             System.err.println("Không tải được animation cho: " + basePath);
-            return null; // Trả về null nếu tải lỗi
+            return null;
         }
 
         System.out.println("Tải thành công animation: " + basePath + " (" + frameCount + " frames)");

@@ -1,4 +1,4 @@
-package org.example.arkanoid.UIUX; // (Giả sử bạn muốn file này ở UIUX)
+package org.example.arkanoid.UIUX;
 
 import java.io.*;
 import java.util.ArrayList;

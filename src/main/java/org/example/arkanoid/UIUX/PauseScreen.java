@@ -1,6 +1,5 @@
 package org.example.arkanoid.UIUX;
 
-
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
@@ -10,18 +9,12 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 
-public class PauseScreen {
-
-    private final double gameWidth;
-    private final double gameHeight;
-
+public class PauseScreen extends UIScreen{
     private final String[] options = {"Resume", "Return to Menu"};
     private final Rectangle2D[] buttonRects;
-    private int hoverIndex = -1; // -1 = không hover
 
     public PauseScreen(double gameWidth, double gameHeight) {
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
+        super(gameWidth,gameHeight);
 
         this.buttonRects = new Rectangle2D[options.length];
 
@@ -54,6 +47,7 @@ public class PauseScreen {
     /**
      * Xử lý sự kiện di chuyển chuột để cập nhật hiệu ứng hover.
      */
+    @Override
     public void handleMouseMove(MouseEvent event) {
         hoverIndex = -1; // Reset
         for (int i = 0; i < buttonRects.length; i++) {
@@ -78,6 +72,7 @@ public class PauseScreen {
     /**
      * Vẽ màn hình pause.
      */
+    @Override
     public void render(GraphicsContext gc) {
         // Vẽ lớp nền mờ (giống code cũ của bạn)
         gc.setFill(new Color(0, 0, 0, 0.6));
@@ -120,10 +115,4 @@ public class PauseScreen {
         gc.setTextBaseline(VPos.BASELINE); // Reset
     }
 
-    /**
-     * Reset trạng thái hover.
-     */
-    public void reset() {
-        this.hoverIndex = -1;
-    }
 }

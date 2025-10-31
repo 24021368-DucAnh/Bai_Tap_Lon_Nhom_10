@@ -9,20 +9,15 @@ import javafx.scene.text.TextAlignment;
 
 import java.util.List;
 
-public class ScoreboardScreen {
-    private double gameWidth;
-    private double gameHeight;
-
+public class ScoreboardScreen extends UIScreen{
     private Rectangle2D backButton;
-    private boolean isHoverBack = false;
 
     // Biến để lưu điểm mới và trạng thái
     private long newScore = 0;
     private boolean hasSaved = false; // Cờ để đảm bảo chỉ lưu 1 lần
 
     public ScoreboardScreen(double gameWidth, double gameHeight) {
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
+        super(gameWidth,gameHeight);
 
         // Vị trí nút "Return to Menu"
         double btnWidth = 350;
@@ -37,6 +32,7 @@ public class ScoreboardScreen {
         this.hasSaved = false;
     }
 
+    @Override
     public void render(GraphicsContext gc) {
         // Chỉ lưu điểm 1 lần
         if (!hasSaved) {
@@ -93,31 +89,41 @@ public class ScoreboardScreen {
 
         // Vẽ nút "Return to Menu"
         gc.setFont(ResourceManager.buttonFont);
-        if (isHoverBack) {
+        if (hoverIndex == 0) {
             gc.setStroke(Color.CYAN);
         } else {
             gc.setStroke(Color.WHITE);
         }
         gc.setLineWidth(2);
-        gc.strokeRoundRect(backButton.getMinX(), backButton.getMinY(), backButton.getWidth(), backButton.getHeight(), 15, 15);
+        gc.strokeRoundRect(backButton.getMinX(), backButton.getMinY(),
+                            backButton.getWidth(), backButton.getHeight(),
+                        15, 15);
 
         gc.setTextBaseline(VPos.CENTER);
-        gc.fillText("Return to Menu", backButton.getMinX() + backButton.getWidth() / 2, backButton.getMinY() + backButton.getHeight() / 2);
+        gc.fillText("Return to Menu",
+                    backButton.getMinX() + backButton.getWidth() / 2,
+                    backButton.getMinY() + backButton.getHeight() / 2);
         gc.setTextBaseline(VPos.BASELINE); // Reset
     }
 
+    @Override
     public void handleMouseMove(MouseEvent event) {
-        isHoverBack = backButton.contains(event.getX(), event.getY());
+        if (backButton.contains(event.getX(), event.getY())) {
+            this.hoverIndex = 0;
+        } else {
+            this.hoverIndex = -1;
+        }
     }
 
     public ScoreboardAction handleMouseClick(MouseEvent event) {
-        if (isHoverBack) {
+        if (hoverIndex == 0) {
             return ScoreboardAction.GOTO_MENU;
         }
         return ScoreboardAction.NONE;
     }
 
+    @Override
     public void reset() {
-        this.isHoverBack = false;
+        super.reset();
     }
 }
