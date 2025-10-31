@@ -114,7 +114,7 @@ public class Paddle extends MovableObject {
             case LASER:
                 this.hasLaser = true;
                 this.laserTimer = LASER_DURATION; // Reset timer
-
+                SoundEffectManager.playLaserPowerupSound();
                 break;
         }
     }
@@ -180,5 +180,10 @@ public class Paddle extends MovableObject {
 
     public boolean hasLaser() {
         return this.hasLaser;
+    }
+    public void resetPaddle() {
+        this.width = originalWidth;
+        powerUpTimer = 0;
+        laserTimer = 0;
     }
 }

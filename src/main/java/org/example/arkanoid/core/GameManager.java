@@ -243,10 +243,10 @@ public class GameManager {
                         powerUpManager.trySpawnPowerUp(brick);
                         this.score += 100;
                         brickIterator.remove();
-                        //soundEffectManager.play("brick_break");
+                        SoundEffectManager.playHitSound();
                     } else {
 
-                        //soundEffectManager.play("ball_hit");
+                        SoundEffectManager.playHitSound();
                     }
 
                     laserHit = true; // Đánh dấu laser đã va chạm (bắn trúng)
@@ -414,6 +414,7 @@ public class GameManager {
         this.activeMeteors.clear();
         this.activeLasers.clear();
         this.powerUpManager.clearPowerUps();
+        this.paddle.resetPaddle();
 
         // Tạo một bóng mới ở giữa
         spawnNewBall();
@@ -526,7 +527,7 @@ public class GameManager {
         // **ĐẶT LẠI COOLDOWN**
         laserCooldownTimer = LASER_COOLDOWN;
 
-
+        SoundEffectManager.playFireLaserSound();
 
         double spawnY = paddle.getY() - 10; // Hơi cao hơn paddle 1 chút
         double spawnX1 = paddle.getX() + (paddle.getWidth() * 0.2);
