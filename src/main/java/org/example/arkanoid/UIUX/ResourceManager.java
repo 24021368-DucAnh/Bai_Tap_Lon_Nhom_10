@@ -29,6 +29,7 @@ public class ResourceManager {
     public static Image paddleImage;
     public static Image lifeIcon;
 
+
     private static final Map<PowerUpType, Image[]> powerUpAnimations = new EnumMap<>(PowerUpType.class);
     /**
      * Tải tất cả tài nguyên cần thiết cho game.
