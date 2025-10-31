@@ -18,11 +18,17 @@ public class PowerUpManager {
     private List<PowerUp> activePowerUps = new ArrayList<>();
     private final Random random = new Random();
 
+    private final GameManager gameManager;
+    public PowerUpManager(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
     /**
      * Cập nhật trạng thái của tất cả các Power-up đang hoạt động.
      * @param dt Thời gian trôi qua giữa các frame.
      * @param gameHeight Chiều cao của màn hình game để kiểm tra vật phẩm có rơi ra ngoài không.
      */
+
+
     public void update(double dt, double gameHeight,Paddle paddle) {
         // Dùng Iterator để xóa phần tử một cách an toàn trong lúc lặp
         activePowerUps.removeIf(powerUp -> {
@@ -53,9 +59,21 @@ public class PowerUpManager {
     public void trySpawnPowerUp(Brick destroyedBrick) {
         // Tỉ lệ 25% rơi ra power-up (bạn có thể thay đổi số 25)
         if (random.nextInt(100) < 25) {
-            // 1. Chọn ngẫu nhiên một loại power-up
+
             PowerUpType[] allTypes = PowerUpType.values();
-            PowerUpType randomType = allTypes[random.nextInt(allTypes.length)];
+            PowerUpType randomType;
+            // Nếu người chơi đang đầy máu
+            if (gameManager.getHp() == 3) {
+                // Lặp cho đến khi chọn được một power-up KHÔNG PHẢI là ADD_LIFE
+                do {
+                    randomType = allTypes[random.nextInt(allTypes.length)];
+                } while (randomType == PowerUpType.ADD_LIFE);
+
+                System.out.println("Đầy máu! Đổi power-up (nếu là ADD_LIFE) sang: " + randomType);
+            } else {
+                // Nếu chưa đầy máu, chọn ngẫu nhiên như bình thường
+                randomType = allTypes[random.nextInt(allTypes.length)];
+            }
 
             // 2. Tạo đối tượng PowerUp ở trung tâm viên gạch
             double px_center = destroyedBrick.getX() + (destroyedBrick.getWidth() / 2.0);
@@ -69,5 +87,9 @@ public class PowerUpManager {
 
             activePowerUps.add(newPowerUp);
         }
+    }
+
+    public void clearPowerUps() {
+        activePowerUps.clear();
     }
 }

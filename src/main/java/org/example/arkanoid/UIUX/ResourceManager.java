@@ -19,6 +19,7 @@ public class ResourceManager {
     private static final String PADDLE_IMAGE_PATH = "/images/Paddle.png";
     private static final String LIFE_ICON_PATH = "/images/heart.png";
     private static final String POWERUP_PATH_PREFIX = "/images/PowerUp/";
+    private static final String LASER_IMAGE_PATH = "/images/laser.png";
 
     // Tài nguyên
     public static Font textFont;
@@ -28,6 +29,7 @@ public class ResourceManager {
 
     public static Image paddleImage;
     public static Image lifeIcon;
+    public static Image laserImage;
 
 
     private static final Map<PowerUpType, Image[]> powerUpAnimations = new EnumMap<>(PowerUpType.class);
@@ -88,6 +90,17 @@ public class ResourceManager {
             System.err.println("Lỗi tải ảnh Paddle: " + e.getMessage());
         }
 
+        //Tải ảnh Laser
+        try (InputStream stream = ResourceManager.class.getResourceAsStream(LASER_IMAGE_PATH)) {
+            if (stream == null) {
+                throw new Exception("Không tìm thấy file: " + LASER_IMAGE_PATH);
+            }
+            laserImage = new Image(stream);
+            System.out.println("Tải thành công: " + LASER_IMAGE_PATH);
+        } catch (Exception e) {
+            System.err.println("Lỗi tải ảnh laser: " + e.getMessage());
+        }
+
         // Tải ảnh Máu
         try (InputStream imageStream = ResourceManager.class.getResourceAsStream(LIFE_ICON_PATH)) {
             if (imageStream == null) throw new Exception("Không tìm thấy ảnh: " + LIFE_ICON_PATH);
@@ -109,6 +122,9 @@ public class ResourceManager {
 
         powerUpAnimations.put(PowerUpType.ADD_LIFE,
                 loadAnimation(POWERUP_PATH_PREFIX + "powerup_life_", 8));
+
+        powerUpAnimations.put(PowerUpType.LASER,
+                loadAnimation(POWERUP_PATH_PREFIX + "powerup_laser_", 8));
     }
 
     private static Image[] loadAnimation(String basePath, int frameCount) {

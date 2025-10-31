@@ -11,27 +11,35 @@ public class Paddle extends MovableObject {
     private double speed;
     private Image image;
     private GraphicsContext gc;
-    //private Powerup...
+
     private boolean movingLeft = false;
     private boolean movingRight = false;
     private final double initialSpeed = 350d;
     private final GameManager gameManager;
+    private final int originalWidth; // Lưu chiều rộng gốc
     private boolean isGrown = false;
-    private final double POWER_UP_DURATION = 10.0;
-    private double growTimer;
-    private final int originalWidth;
+
+    //Dành cho Paddle_Grow
+    private double powerUpTimer = 0.0; // Bộ đếm thời gian
+    private final double POWER_UP_DURATION =7.0; // 7 GIÂY
     private final double gameBoundWidth;
 
-    public Paddle(double x, double y, int width, int height, Image image, GameManager gameManager, double gameBoundWidth) {
-        // Paddle chỉ di chuyển theo chiều ngang => dY ban đầu là 0
+    //Dành cho Laser
+    private boolean hasLaser = false;
+    private double laserTimer = 0.0;
+    private final double LASER_DURATION = 3.0;
+
+
+    public Paddle(double x, double y, int width, int height, Image image,
+                  GameManager gameManager) {
         super(x, y, width, height, 0, 0);
         this.speed = initialSpeed;
         this.image = image;
-        this.gameManager = gameManager;
-        this.gameBoundWidth = gameBoundWidth;
+
+        // **QUAN TRỌNG: Lưu lại chiều rộng ban đầu**
         this.originalWidth = width;
-        //this.currentPowerUp = null;
-        //this.powerUpDurationLeft = 0;
+        this.gameBoundWidth = gameManager.getGameWidth();
+        this.gameManager = gameManager;
     }
 
     public void moveLeft() {
@@ -77,11 +85,14 @@ public class Paddle extends MovableObject {
             case PADDLE_GROW:
                 SoundEffectManager.playPaddlePowerupSound();
                 if (!isGrown) {
-                    this.width = (int)(this.width * 1.5);
+                    this.width = (int)(this.originalWidth * 1.5); // Tăng 50% từ KÍCH THƯỚC GỐC
+                    // Căn lại paddle để nó lớn ra từ tâm
                     this.x = this.x - (this.width - originalWidth) / 2.0;
                     isGrown = true;
                 }
-                this.growTimer = POWER_UP_DURATION;
+
+                // Dù đang lớn hay không, cứ ăn là reset timer
+                this.powerUpTimer = POWER_UP_DURATION;
                 break;
 
 
@@ -95,8 +106,15 @@ public class Paddle extends MovableObject {
                 // **GỌI HÀM CỦA GAMEMANAGER**
                 if(gameManager.getHp() < 3) {
                     gameManager.addHP();
-                    SoundEffectManager.playExtraLifeSound();
+
                 }
+                SoundEffectManager.playExtraLifeSound();
+                break;
+
+            case LASER:
+                this.hasLaser = true;
+                this.laserTimer = LASER_DURATION; // Reset timer
+
                 break;
         }
     }
@@ -104,7 +122,35 @@ public class Paddle extends MovableObject {
 
     @Override
     public void update(double deltaTime) {
+
         this.move(deltaTime);
+
+        // --- THÊM LOGIC ĐẾM NGƯỢC POWER-UP ---
+        if (isGrown) {
+            // 1. Đếm ngược
+            powerUpTimer -= deltaTime; // Trừ đi thời gian đã trôi qua
+
+            // 2. Kiểm tra nếu hết giờ
+            if (powerUpTimer <= 0) {
+                // Hết giờ, trả paddle về trạng thái ban đầu
+                // Căn lại vị trí x TRƯỚC KHI thay đổi width
+                this.x = this.x + (this.width - originalWidth) / 2.0;
+
+                this.width = originalWidth; // Trả về kích thước gốc
+                isGrown = false;
+                powerUpTimer = 0.0; // Đặt về 0 cho chắc
+                System.out.println("Power-up PADDLE_GROW đã hết hạn!");
+            }
+        }
+
+        if (hasLaser) {
+            laserTimer -= deltaTime;
+            if (laserTimer <= 0) {
+                hasLaser = false;
+                laserTimer = 0.0;
+                System.out.println("Power-up LASER đã hết hạn!");
+            }
+        }
     }
 
 
@@ -130,5 +176,9 @@ public class Paddle extends MovableObject {
     }
     public void setMovingRight(boolean movingRight) {
         this.movingRight = movingRight;
+    }
+
+    public boolean hasLaser() {
+        return this.hasLaser;
     }
 }

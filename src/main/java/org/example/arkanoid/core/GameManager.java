@@ -6,7 +6,7 @@ import javafx.scene.input.MouseEvent;
 import org.example.arkanoid.UIUX.*;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
-
+import javafx.geometry.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,7 +34,11 @@ public class GameManager {
     private Paddle paddle;
     private List<Ball> balls = new ArrayList<>();
     private List<Brick> bricks = new ArrayList<>();
+    private List<Laser> activeLasers = new ArrayList<>();
+    private static final double LASER_COOLDOWN = 0.25; // 0.25 giây delay mỗi phát bắn
+    private double laserCooldownTimer = 0.0; // Bộ đếm thời gian hồi chiêu
     private PowerUpManager powerUpManager;
+
 
     private List<Meteor> activeMeteors = new ArrayList<>();
     private final Random random = new Random(); // Thêm một đối tượng Random
@@ -68,14 +72,14 @@ public class GameManager {
                 initialPaddleY,
                 PADDLE_WIDTH, PADDLE_HEIGHT,
                 ResourceManager.paddleImage,
-                this,
-                this.gameWidth);
+                this
+                );
 
         //---------Brick-------------
         BrickSkinRegistry.initDefaults();
 
         //------ PowerUp ---------
-        this.powerUpManager = new PowerUpManager();
+        this.powerUpManager = new PowerUpManager(this);
         this.activeMeteors.clear();
 
         //------ Pause Screen -----
@@ -179,6 +183,8 @@ public class GameManager {
                 System.out.println("Một quả bóng đã rơi ra ngoài.");
             }
         }
+
+
         /** Xu ly mat bong */
         if (balls.isEmpty() && !isGameWon) {
             this.HP--; // Trừ mạng
@@ -220,6 +226,45 @@ public class GameManager {
                 meteorIter.remove();
             }
         }
+
+        Iterator<Laser> laserIterator = activeLasers.iterator();
+        while (laserIterator.hasNext()) {
+            Laser laser = laserIterator.next();
+            laser.update(deltaTime); // Di chuyển laser
+
+            boolean laserHit = false;
+            Iterator<Brick> brickIterator = bricks.iterator();
+            while (brickIterator.hasNext()) {
+                Brick brick = brickIterator.next();
+
+                if (laser.checkCollision(brick)) {
+                    if (brick.onCollisionEnter()) { // <-- THAY ĐỔI QUAN TRỌNG
+                        // Gạch đã bị phá hủy
+                        powerUpManager.trySpawnPowerUp(brick);
+                        this.score += 100;
+                        brickIterator.remove();
+                        //soundEffectManager.play("brick_break");
+                    } else {
+
+                        //soundEffectManager.play("ball_hit");
+                    }
+
+                    laserHit = true; // Đánh dấu laser đã va chạm (bắn trúng)
+                    break; // Một laser chỉ va chạm 1 lần
+                }
+            }
+
+            // 2. Xóa laser nếu nó trúng gạch HOẶC bay ra khỏi màn hình
+            if (laserHit || laser.isOffScreenTop()) {
+                laserIterator.remove();
+            }
+        }
+
+        // Đếm ngược thời gian hồi của laser
+        if (laserCooldownTimer > 0) {
+            laserCooldownTimer -= deltaTime;
+        }
+
 
         boolean stageComplete = true;
         if (bricks.isEmpty()) {
@@ -272,6 +317,9 @@ public class GameManager {
             BrickPainter.draw(gc, brick);
         }
 
+        for (Laser laser : activeLasers) {
+            laser.render(gc);
+        }
         // Vẽ các lớp UI
         switch (currentState) {
             case GAME_OVER:
@@ -352,19 +400,21 @@ public class GameManager {
             this.paddle = new Paddle(
                     initialPaddleX, initialPaddleY,
                     PADDLE_WIDTH, PADDLE_HEIGHT,
-                    ResourceManager.paddleImage, this, // Truyền GameManager vào Paddle
-                    this.gameWidth);
+                    ResourceManager.paddleImage, this
+            );
         } else {
             this.paddle.setX(initialPaddleX);
             this.paddle.setY(initialPaddleY);
-            // TODO: Reset trạng thái power-up của paddle (ví dụ: kích thước) nếu cần
-            // this.paddle.resetSize();
+
         }
 
-        //---------Ball-------------
+
         // Xóa hết bóng cũ
         this.balls.clear();
         this.activeMeteors.clear();
+        this.activeLasers.clear();
+        this.powerUpManager.clearPowerUps();
+
         // Tạo một bóng mới ở giữa
         spawnNewBall();
     }
@@ -372,9 +422,9 @@ public class GameManager {
     private void spawnNewBall() {
         final int BALL_DIAMETER = 20;
         final double BALL_SPEED = 250; // Tốc độ ban đầu
-        double initialBallX = gameWidth / 2.0;
-        // Đặt bóng ngay trên paddle hoặc giữa màn hình
-        double initialBallY = (paddle != null) ? paddle.getY() - BALL_DIAMETER : gameHeight / 2.0;
+        double initialBallX = paddle.getX() + (paddle.getWidth() / 2.0);
+        // Đặt bóng ngay trên paddle
+        double initialBallY = paddle.getY() - 20;
 
         Ball newBall = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this);
         this.balls.add(newBall);
@@ -405,19 +455,52 @@ public class GameManager {
     }
 
     public void addBall() {
-        // Tạo bóng mới ở ngay trên paddle
-        double newBallX = paddle.getX() + (paddle.getWidth() / 2.0);
-        double newBallY = paddle.getY() - 20; // Hơi cao hơn paddle
+        System.out.println("Kích hoạt ADD_BALL! Thêm 3 bóng!");
 
+        // Vị trí spawn bóng (ngay trên giữa paddle)
+        double spawnX = paddle.getX() + (paddle.getWidth() / 2.0);
+        double spawnY = paddle.getY() - 20; // Hơi cao hơn paddle
 
-        Ball newBall = new Ball(newBallX, newBallY, 20, 250.0, gameWidth, gameHeight, this);
-        this.balls.add(newBall);
+        final double TOTAL_SPEED = 350.0; // Tốc độ gốc
+
+        // Tính toán vận tốc cho các bóng bay chéo
+        // Dùng định lý Pytago: vx^2 + vy^2 = TOTAL_SPEED^2
+        // Chúng ta chọn vy cố định và tìm vx
+        final double vY_Diagonal = -300.0; // Vận tốc bay lên của bóng chéo
+        // Tính vX: vX = sqrt(TOTAL_SPEED^2 - vY_Diagonal^2)
+        final double vX_Diagonal = Math.sqrt(TOTAL_SPEED * TOTAL_SPEED - vY_Diagonal * vY_Diagonal); // ≈ 180.3
+
+        // Danh sách vận tốc cho 3 bóng
+        Point2D[] velocities = new Point2D[] {
+                new Point2D(-vX_Diagonal, vY_Diagonal), // Bóng 1: Bay chéo sang trái (Tốc độ ≈ 350)
+                new Point2D(0, -TOTAL_SPEED),           // Bóng 2: Bay thẳng lên (Tốc độ = 350)
+                new Point2D(vX_Diagonal, vY_Diagonal)   // Bóng 3: Bay chéo sang phải (Tốc độ ≈ 350)
+        };
+
+        // Tạo 3 quả bóng
+        for (int i = 0; i < 3; i++) {
+            Ball newBall = new Ball(
+                    spawnX,
+                    spawnY,
+                    20, // BALL_DIAMETER
+                    TOTAL_SPEED, // (Giá trị này không còn quan trọng vì ta setVelocity ngay sau)
+                    gameWidth,
+                    gameHeight,
+                    this
+            );
+
+            // Đặt vận tốc đã tính
+            newBall.setVelocity(velocities[i]);
+
+            // Thêm bóng vào danh sách
+            this.balls.add(newBall);
+        }
     }
 
 
     private void respawnBall() {
-        double initialBallX = gameWidth / 2.0;
-        double initialBallY = gameHeight / 2.0;
+        double initialBallX = paddle.getX() + (paddle.getWidth() / 2.0);
+        double initialBallY = paddle.getY() - 20;
         Ball ball = new Ball(initialBallX, initialBallY, 20, 250.0, gameWidth, gameHeight, this);
         this.balls.add(ball);
     }
@@ -432,6 +515,25 @@ public class GameManager {
             Meteor meteor = new Meteor(spawnX, spawnY, METEOR_SIZE, METEOR_SIZE, METEOR_SPEED);
             activeMeteors.add(meteor);
         }
+    }
+
+    public void fireLaser() {
+
+        if (!paddle.hasLaser() || laserCooldownTimer > 0) {
+            return; // Chưa thể bắn, thoát ra
+        }
+
+        // **ĐẶT LẠI COOLDOWN**
+        laserCooldownTimer = LASER_COOLDOWN;
+
+
+
+        double spawnY = paddle.getY() - 10; // Hơi cao hơn paddle 1 chút
+        double spawnX1 = paddle.getX() + (paddle.getWidth() * 0.2);
+        double spawnX2 = paddle.getX() + (paddle.getWidth() * 0.8);
+
+        activeLasers.add(new Laser(spawnX1, spawnY));
+        activeLasers.add(new Laser(spawnX2, spawnY));
     }
 
     public void handleKeyEvent(KeyEvent event) {
@@ -525,6 +627,8 @@ public class GameManager {
                 break;
 
             case PLAYING:
+                fireLaser();
+                break;
             case STAGE_TRANSITION:
             default:
                 break;
@@ -554,5 +658,9 @@ public class GameManager {
             default:
                 break;
         }
+    }
+
+    public double getGameWidth() {
+        return this.gameWidth;
     }
 }
