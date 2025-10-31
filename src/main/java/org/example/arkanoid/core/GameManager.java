@@ -37,10 +37,9 @@ public class GameManager {
     private PowerUpManager powerUpManager;
 
     private List<Meteor> activeMeteors = new ArrayList<>();
-    private final Random random = new Random(); // Thêm một đối tượng Random
-    private static final int METEOR_SPAWN_CHANCE = 15; // 15% tỉ lệ rơi
-    private static final double METEOR_SPEED = 200.0; // Tốc độ rơi (pixels/giây)
-    private static final int METEOR_SIZE = 20;
+    private final Random random = new Random();
+    private static final int METEOR_SPAWN_CHANCE = 15;
+    private static final double METEOR_SPEED = 200.0;
 
     private int currentStage = 1;
     private boolean isGameWon = false;
@@ -424,10 +423,10 @@ public class GameManager {
         // Tỉ lệ rơi là METEOR_SPAWN_CHANCE (ví dụ: 15%)
         if (random.nextInt(100) < METEOR_SPAWN_CHANCE) {
             // Tạo ở trung tâm viên gạch
-            double spawnX = destroyedBrick.getX() + (destroyedBrick.getWidth() / 2.0) - (METEOR_SIZE / 2.0);
-            double spawnY = destroyedBrick.getY() + (destroyedBrick.getHeight() / 2.0);
+            double spawnCenterX = destroyedBrick.getX() + (destroyedBrick.getWidth() / 2.0);
+            double spawnCenterY = destroyedBrick.getY() + (destroyedBrick.getHeight() / 2.0);
 
-            Meteor meteor = new Meteor(spawnX, spawnY, METEOR_SIZE, METEOR_SIZE, METEOR_SPEED);
+            Meteor meteor = new Meteor(spawnCenterX, spawnCenterY, METEOR_SPEED);
             activeMeteors.add(meteor);
         }
     }
