@@ -6,23 +6,19 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
-import org.example.arkanoid.UIUX.ResourceManager; // <-- THÊM IMPORT NÀY
 
-public class QuitScreen {
-    private double gameWidth;
-    private double gameHeight;
-
+public class QuitScreen extends UIScreen{
     private final String[] options = {"YES", "NO"};
     private final Rectangle2D[] buttonRects;
-    private int hoverIndex = -1;
 
     private final double BUTTON_WIDTH = 150;
     private final double BUTTON_HEIGHT = 50;
     private final double BUTTON_SPACING = 40;
 
+    private long score = 0;
+
     public QuitScreen(double gameWidth, double gameHeight) {
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
+        super(gameWidth,gameHeight);
 
         this.buttonRects = new Rectangle2D[options.length];
 
@@ -34,7 +30,8 @@ public class QuitScreen {
         this.buttonRects[1] = new Rectangle2D(noButtonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
     }
 
-    public void render(GraphicsContext gc, long score) {
+    @Override
+    public void render(GraphicsContext gc) {
         gc.setFill(new Color(0, 0, 0, 0.7));
         gc.fillRect(0, 0, gameWidth, gameHeight);
 
@@ -75,6 +72,7 @@ public class QuitScreen {
         gc.setTextBaseline(VPos.BASELINE); // Reset
     }
 
+    @Override
     public void handleMouseMove(MouseEvent event) {
         hoverIndex = -1;
         for (int i = 0; i < buttonRects.length; i++) {
@@ -98,7 +96,12 @@ public class QuitScreen {
         return QuitAction.NONE;
     }
 
+    @Override
     public void reset() {
-        this.hoverIndex = -1;
+        super.reset();
+    }
+
+    public void setScore(long score) {
+        this.score = score;
     }
 }

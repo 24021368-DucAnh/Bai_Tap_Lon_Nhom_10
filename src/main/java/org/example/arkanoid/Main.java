@@ -19,17 +19,31 @@ public class Main extends Application implements GameNavigator {
     private final int WINDOW_WIDTH = 700;
     private final int WINDOW_HEIGHT = 950;
 
-    private final double GAME_AREA_X = 20;      // Lề trái 20px
-    private final double GAME_AREA_Y = 100;     // Lề trên (chiều cao UI) 100px
+    // --- Game UI ---
+    private final double UI_AREA_X = 0;
+    private final double UI_AREA_Y = 0;
+    private final double UI_AREA_WIDTH = WINDOW_WIDTH;
+    private final double UI_AREA_HEIGHT = 100;
 
-    // (600 - 20 lề trái - 20 lề phải)
-    private final double GAME_AREA_WIDTH = 660;
-    // (900 - 100 lề trên)
-    private final double GAME_AREA_HEIGHT = 850;
+    // --- Background ---
+    private final double BACKGROUND_PANE_X = 0;
+    private final double BACKGROUND_PANE_Y = UI_AREA_HEIGHT;
+    private final double BACKGROUND_PANE_WIDTH = WINDOW_WIDTH;
+    private final double BACKGROUND_PANE_HEIGHT = WINDOW_HEIGHT - UI_AREA_HEIGHT;
 
-    // Khu vực cho UI (nằm ở trên cùng)
-    private final double UI_AREA_WIDTH = WINDOW_WIDTH; // Rộng bằng cửa sổ
-    private final double UI_AREA_HEIGHT = GAME_AREA_Y; // Cao bằng lề trên của game
+    // --- Frame ---
+    private final double FRAME_THICKNESS_LEFT = 20;
+    private final double FRAME_THICKNESS_RIGHT = 20;
+    private final double FRAME_THICKNESS_TOP = 20;
+    private final double FRAME_THICKNESS_BOTTOM = 0;
+
+    // --- Khu vực Game---
+    // Vị trí của Canvas (lọt lòng bên trong khung)
+    private final double GAME_AREA_X = BACKGROUND_PANE_X + FRAME_THICKNESS_LEFT; // 0 + 20 = 20
+    private final double GAME_AREA_Y = BACKGROUND_PANE_Y + FRAME_THICKNESS_TOP;  // 100 + 20 = 120
+    // Kích thước của Canvas
+    private final double GAME_AREA_WIDTH = BACKGROUND_PANE_WIDTH - FRAME_THICKNESS_LEFT - FRAME_THICKNESS_RIGHT;
+    private final double GAME_AREA_HEIGHT = BACKGROUND_PANE_HEIGHT - FRAME_THICKNESS_TOP - FRAME_THICKNESS_BOTTOM;
 
     private Stage primaryStage;
     private Scene startScene;
@@ -74,12 +88,12 @@ public class Main extends Application implements GameNavigator {
         gameRoot.setStyle("-fx-background-color: black;");
 
         // Tạo BackgroundManager game
-        this.backgroundManager = new BackgroundManager((int)GAME_AREA_WIDTH, (int)GAME_AREA_HEIGHT);
+        this.backgroundManager = new BackgroundManager((int)this.BACKGROUND_PANE_WIDTH, (int)this.BACKGROUND_PANE_HEIGHT);
         Pane gameBackgroundPane = backgroundManager.getBackgroundPane();
 
         // Khu vực chơi game
-        gameBackgroundPane.setLayoutX(GAME_AREA_X);
-        gameBackgroundPane.setLayoutY(GAME_AREA_Y);
+        gameBackgroundPane.setLayoutX(this.BACKGROUND_PANE_X);
+        gameBackgroundPane.setLayoutY(this.BACKGROUND_PANE_Y);
 
         gameRoot.getChildren().add(gameBackgroundPane);
 

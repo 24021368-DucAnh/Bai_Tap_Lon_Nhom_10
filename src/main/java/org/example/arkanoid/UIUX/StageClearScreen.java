@@ -1,13 +1,11 @@
 package org.example.arkanoid.UIUX;
 
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 
-public class StageClearScreen {
-    private double gameWidth;
-    private double gameHeight;
-
+public class StageClearScreen extends UIScreen{
     // Biến theo dõi tổng thời gian
     private double elapsedTime = 0;
     // Biến theo dõi timer cho hiệu ứng dấu chấm
@@ -20,9 +18,10 @@ public class StageClearScreen {
     // ốc độ của hiệu ứng dấu chấm mỗi 0.5 giây
     private final double DOT_ANIMATION_INTERVAL = 0.5;
 
+    private int stageCompleted = 1;
+
     public StageClearScreen(double gameWidth, double gameHeight) {
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
+        super(gameWidth,gameHeight);
     }
 
     public void update(double deltaTime) {
@@ -36,7 +35,8 @@ public class StageClearScreen {
         }
     }
 
-    public void render(GraphicsContext gc, int stageCompleted) {
+    @Override
+    public void render(GraphicsContext gc) {
         gc.setFill(Color.rgb(0, 0, 0, 0.7));
         gc.fillRect(0, 0, gameWidth, gameHeight);
 
@@ -60,12 +60,21 @@ public class StageClearScreen {
         }
     }
 
+    @Override
+    public void handleMouseMove(MouseEvent event) {
+    }
     /**
      * Reset lại trạng thái khi bắt đầu chuyển màn.
      */
+    @Override
     public void reset() {
+        super.reset();
         elapsedTime = 0;
         dotsTimer = 0;
         dotCount = 0;
+    }
+
+    public void setStageCompleted(int stage) {
+        this.stageCompleted = stage;
     }
 }

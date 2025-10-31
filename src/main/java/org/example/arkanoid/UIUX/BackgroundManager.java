@@ -1,6 +1,5 @@
 package org.example.arkanoid.UIUX;
 
-
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
