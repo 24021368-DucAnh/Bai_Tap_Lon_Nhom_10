@@ -41,6 +41,11 @@ public class GameManager {
     private static final int METEOR_SPAWN_CHANCE = 15;
     private static final double METEOR_SPEED = 200.0;
 
+    private double shakeTimer = 0.0;
+    private double shakeIntensity = 0.0;
+    private double cameraOffsetX = 0.0;
+    private double cameraOffsetY = 0.0;
+
     private int currentStage = 1;
     private boolean isGameWon = false;
     private final int MAX_STAGES = 32;
@@ -104,6 +109,20 @@ public class GameManager {
      * @param deltaTime
      */
     public void update(double deltaTime) {
+        if (shakeTimer > 0) {
+            shakeTimer -= deltaTime;
+            if (shakeTimer <= 0) {
+                // Hết giờ, trả camera về 0
+                shakeTimer = 0;
+                cameraOffsetX = 0;
+                cameraOffsetY = 0;
+            } else {
+                // Vẫn đang rung, tạo vị trí ngẫu nhiên
+                cameraOffsetX = (random.nextDouble() - 0.5) * 2 * shakeIntensity;
+                cameraOffsetY = (random.nextDouble() - 0.5) * 2 * shakeIntensity;
+            }
+        }
+
         if (currentState == GameState.PAUSED
                 || isGameWon
                 || currentState == GameState.GAME_OVER
@@ -181,6 +200,9 @@ public class GameManager {
         /** Xu ly mat bong */
         if (balls.isEmpty() && !isGameWon) {
             this.HP--; // Trừ mạng
+
+            triggerScreenShake(10.0, 0.3);
+
             System.out.println("Mất 1 mạng! Còn lại: " + this.HP);
             SoundEffectManager.playDeathSound();
 
@@ -252,6 +274,10 @@ public class GameManager {
 
     public void render(GraphicsContext gc) {
         gc.clearRect(0, 0, gameWidth, gameHeight);
+
+        gc.save(); // Lưu trạng thái canvas (trước khi dịch chuyển)
+        gc.translate(cameraOffsetX, cameraOffsetY);
+
         // Vẽ paddle
         paddle.render(gc);
 
@@ -271,6 +297,8 @@ public class GameManager {
             BrickPainter.draw(gc, brick);
         }
 
+        gc.restore();
+
         // Vẽ các lớp UI
         switch (currentState) {
             case GAME_OVER:
@@ -288,6 +316,11 @@ public class GameManager {
             case SCOREBOARD:
                 scoreboardScreen.render(gc);
         }
+    }
+
+    private void triggerScreenShake(double intensity, double duration) {
+        this.shakeIntensity = intensity;
+        this.shakeTimer = duration;
     }
 
     public void addHP() {
