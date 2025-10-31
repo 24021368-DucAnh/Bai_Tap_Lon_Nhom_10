@@ -20,6 +20,8 @@ public class ResourceManager {
     private static final String LIFE_ICON_PATH = "/images/heart.png";
     private static final String POWERUP_PATH_PREFIX = "/images/PowerUp/";
 
+    private static final String METEOR_PATH_PREFIX = "/images/Meteor/";
+
     // Tài nguyên
     public static Font textFont;
     public static Font uiFont;
@@ -31,6 +33,8 @@ public class ResourceManager {
 
 
     private static final Map<PowerUpType, Image[]> powerUpAnimations = new EnumMap<>(PowerUpType.class);
+
+    private static Image[] meteorAnimation;
     /**
      * Tải tất cả tài nguyên cần thiết cho game.
      * Gọi hàm này một lần khi game khởi động.
@@ -109,6 +113,8 @@ public class ResourceManager {
 
         powerUpAnimations.put(PowerUpType.ADD_LIFE,
                 loadAnimation(POWERUP_PATH_PREFIX + "powerup_life_", 8));
+
+        meteorAnimation = loadAnimation(METEOR_PATH_PREFIX + "meteor_", 5);
     }
 
     private static Image[] loadAnimation(String basePath, int frameCount) {
@@ -136,6 +142,10 @@ public class ResourceManager {
 
         System.out.println("Tải thành công animation: " + basePath + " (" + frameCount + " frames)");
         return frames;
+    }
+
+    public static Image[] getMeteorAnimation() {
+        return meteorAnimation;
     }
 
     public static Image[] getPowerUpAnimation(PowerUpType type) {
