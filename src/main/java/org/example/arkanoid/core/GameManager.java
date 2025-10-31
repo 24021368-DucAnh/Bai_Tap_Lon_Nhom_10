@@ -48,7 +48,7 @@ public class GameManager {
     public void init() {
 
         //---------Paddle-------------
-        final int PADDLE_WIDTH = 1000;//(int) ResourceManager.paddleImage.getWidth();
+        final int PADDLE_WIDTH = (int) ResourceManager.paddleImage.getWidth();
         final int PADDLE_HEIGHT = (int) ResourceManager.paddleImage.getHeight();
         final int PADDLE_OFFSET_FROM_BOTTOM = 100; // Cách lề dưới 1 khoảng y
 
