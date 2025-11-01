@@ -16,16 +16,41 @@ public class Ball extends MovableObject {
     private final double gameWidth;
     private final double gameHeight;
     private final GameManager gameManager;
+    public boolean isSticky = true; // ĐẦU GAME BÓNG DÍNH VỚI PADDLE
+    private Paddle paddle; //Mục đích : Tham chiếu để đồng bộ vị trí bóng và paddle
 
-    public Ball(double x, double y, int diameter, double initialSpeed, double gameWidth, double gameHeight, GameManager gameManager) {
+    public Ball(double x, double y, int diameter, double initialSpeed, double gameWidth, double gameHeight, GameManager gameManager, boolean isSticky) {
         super(x, y, diameter, diameter, 0, 0);
         this.radius = diameter / 2.0;
         this.gameWidth = gameWidth;
         this.gameHeight = gameHeight;
-
-        //Khởi tạo vector vận tốc
-        this.velocity = new Point2D(initialSpeed, -initialSpeed);
         this.gameManager = gameManager;
+        //Ban đầu bóng chưa bay, chờ ấn space
+        this.isSticky = isSticky; // Gán trạng thái dính từ tham số
+
+        if (isSticky) {
+            // Nếu là bóng dính, cho vận tốc bằng 0 (chờ ấn SPACE)
+            this.velocity = new Point2D(0, 0);
+        } else {
+            // Nếu không dính (bóng power-up), cho bay lên ngay
+            // Bạn có thể chỉnh hướng bay ngẫu nhiên, nhưng bay thẳng lên là đơn giản nhất
+            this.velocity = new Point2D(0, -initialSpeed);
+        }
+    }
+
+    public void setPaddle(Paddle paddle) {
+        this.paddle = paddle;
+    }
+
+    // Hàm thả bóng ra lúc start game
+    public void releaseFromPaddle(double initialSpeed) {
+        if (isSticky) {
+            isSticky = false;
+            //Bóng được phóng lên trên
+            double horizontalSpeed = (Math.random() > 0.5 ? 1 : -1) * 60.0;
+            double verticalSpeed = -initialSpeed;
+            this.velocity = new Point2D(horizontalSpeed, verticalSpeed);
+        }
     }
 
     /**
@@ -112,21 +137,63 @@ public class Ball extends MovableObject {
 
     @Override
     public void update(double deltaTime) {
-        // Cập nhật vị trí dựa trên tốc độ, hướng và deltaTime
-        this.x += this.velocity.getX() * deltaTime;
-        this.y += this.velocity.getY() * deltaTime;
+        //Vị trí ban đầu : Ngay bên trên paddle
+        if (isSticky && paddle != null) {
+            this.x = paddle.getX() + paddle.getWidth() / 2.0;
+            this.y = paddle.getY() - radius - 1;
+        } else {
+            // Cập nhật vị trí dựa trên tốc độ, hướng và deltaTime
+            this.x += this.velocity.getX() * deltaTime;
+            this.y += this.velocity.getY() * deltaTime;
 
-        // Kiểm tra va chạm với biên màn hình
-        // Va chạm biên trái hoặc phải
-        if ((x - radius < 0 && velocity.getX() < 0) || (x + radius > gameWidth && velocity.getX() > 0)) {
-            this.velocity = new Point2D(-this.velocity.getX(), this.velocity.getY());
-        }
+            // Kiểm tra va chạm với biên màn hình
+            // Va chạm biên trái hoặc phải
+            if ((x - radius < 0 && velocity.getX() < 0) || (x + radius > gameWidth && velocity.getX() > 0)) {
+                this.velocity = new Point2D(-this.velocity.getX(), this.velocity.getY());
+            }
 
-        // Va chạm biên trên
-        if (y - radius < 0 && velocity.getY() < 0) {
-            this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
+            // Va chạm biên trên
+            if (y - radius < 0 && velocity.getY() < 0) {
+                this.velocity = new Point2D(this.velocity.getX(), -this.velocity.getY());
+            }
         }
     }
+
+    /**
+     * Xử lý va chạm bóng với paddle.
+     * Bóng nảy góc theo vị trí chạm, cộng vận tốc paddle ngang.
+     */
+    public void bounceOff(Paddle paddle) {
+        if (isSticky) return; // Nếu bóng đang dính paddle thì không đổi vận tốc
+
+        double paddleCenter = paddle.getX() + paddle.getWidth() / 2.0;
+        double ballDist = this.x - paddleCenter;
+        double maxDist = paddle.getWidth() / 2.0;
+
+        double normalized = Math.max(-1, Math.min(1, ballDist / maxDist));
+        double maxAngle = Math.toRadians(60);
+        double angle = normalized * maxAngle;
+
+        double speed = Math.hypot(velocity.getX(), velocity.getY());
+
+        double newVx = speed * Math.sin(angle);
+        double newVy = -speed * Math.cos(angle);
+
+        // Lấy vận tốc ngang paddle cộng vào ball (chỉ khi không dính)
+        newVx += 0.35 * paddle.getVelocityX();
+
+        double newSpeed = Math.hypot(newVx, newVy);
+        if (newSpeed != 0) {
+            newVx *= (speed / newSpeed);
+            newVy *= (speed / newSpeed);
+        }
+
+        this.velocity = new Point2D(newVx, newVy);
+
+        // Đẩy bóng lên khỏi paddle tránh dính khung hình tiếp
+        this.y = paddle.getY() - this.radius - 1;
+    }
+
 
     @Override
     public void render(GraphicsContext gc) {
@@ -138,6 +205,7 @@ public class Ball extends MovableObject {
     public Point2D getVelocity() {
         return velocity;
     }
+
     public void setVelocity(Point2D velocity) {
         this.velocity = velocity;
     }

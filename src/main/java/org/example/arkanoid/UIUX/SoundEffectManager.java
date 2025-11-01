@@ -12,6 +12,8 @@ public final class SoundEffectManager {
     private static AudioClip paddlePowerupSound;
     private static AudioClip roundStartSound;
     private static AudioClip levelswitch;
+    private static AudioClip laserPowerupSound;
+    private static AudioClip fireLaserSound;
 
     static {
         hitSound = loadClip("/sound/sound effect/hitsound.wav");
@@ -22,6 +24,8 @@ public final class SoundEffectManager {
         paddlePowerupSound = loadClip("/sound/sound effect/paddle powerup.wav");
         roundStartSound = loadClip("/sound/sound effect/Round Start.mp3");
         levelswitch = loadClip("/sound/sound effect/switchlevel.mp3");
+        laserPowerupSound = loadClip("/sound/sound effect/laserPowerup.wav");
+        fireLaserSound = loadClip("/sound/sound effect/fireLaser.wav");
     }
 
     private SoundEffectManager() {
@@ -114,4 +118,19 @@ public final class SoundEffectManager {
             levelswitch.play();
         }
     }
+
+    //Phát âm thanh của Laser
+    public static void playLaserPowerupSound() {
+        if (laserPowerupSound != null) {
+            laserPowerupSound.play();
+        }
+    }
+
+    public static void playFireLaserSound() {
+        if (fireLaserSound != null) {
+            fireLaserSound.play();
+        }
+    }
+
+
 }

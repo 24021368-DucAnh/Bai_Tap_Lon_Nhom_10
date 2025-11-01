@@ -1,19 +1,17 @@
 package org.example.arkanoid;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.scene.canvas.GraphicsContext;
-import org.example.arkanoid.UIUX.BackgroundManager;
-import org.example.arkanoid.UIUX.GameUI;
-import org.example.arkanoid.UIUX.StartScreen;
+import org.example.arkanoid.UIUX.*;
 import org.example.arkanoid.core.GameLoop;
 import org.example.arkanoid.core.GameManager;
 import javafx.scene.canvas.Canvas;
 import org.example.arkanoid.core.GameNavigator;
-import org.example.arkanoid.UIUX.ResourceManager;
 
 public class Main extends Application implements GameNavigator {
     private final int WINDOW_WIDTH = 700;
@@ -38,7 +36,7 @@ public class Main extends Application implements GameNavigator {
     private final double FRAME_THICKNESS_BOTTOM = 0;
 
     // --- Khu vực Game---
-    // Vị trí của Canvas (lọt lòng bên trong khung)
+    // Vị trí của Canvas (bên trong khung)
     private final double GAME_AREA_X = BACKGROUND_PANE_X + FRAME_THICKNESS_LEFT; // 0 + 20 = 20
     private final double GAME_AREA_Y = BACKGROUND_PANE_Y + FRAME_THICKNESS_TOP;  // 100 + 20 = 120
     // Kích thước của Canvas
@@ -48,6 +46,7 @@ public class Main extends Application implements GameNavigator {
     private Stage primaryStage;
     private Scene startScene;
     private Scene gameScene;
+    private Scene howToPlayScene;
 
     private StartScreen startScreen;
     private GameLoop gameLoop;
@@ -57,6 +56,12 @@ public class Main extends Application implements GameNavigator {
     private Canvas gameCanvas;
     private Canvas uiCanvas;
     private GraphicsContext uiGC;
+
+    private HowToPlayScreen howToPlayScreen;
+    private ScoreboardScreen scoreboardScreen;
+    private Scene scoreboardScene; // Scene cho scoreboard
+    private AnimationTimer scoreboardLoop;
+    private AnimationTimer howToPlayLoop;
 
     @Override
     public void start(Stage primaryStage) {
@@ -71,7 +76,12 @@ public class Main extends Application implements GameNavigator {
 
         // Gọi startGame() khi nhấn nút Start
         // Thoát khi nhấn nút Exit
-        Pane startPane = this.startScreen.createContent(this::startGame, Platform::exit);
+        Pane startPane = this.startScreen.createContent(
+                this::startGame,
+                this::showScoreboardScreen,
+                this::showHowToPlayScreen,
+                Platform::exit
+        );
 
         this.startScene = new Scene(startPane);
 
@@ -154,6 +164,12 @@ public class Main extends Application implements GameNavigator {
         // Dừng background
         this.backgroundManager = null;
 
+        if (this.scoreboardLoop != null) {
+            this.scoreboardLoop.stop();
+        }
+        if (this.howToPlayLoop != null) {
+            this.howToPlayLoop.stop();
+        }
 
         // Chuyển Stage trở lại màn hình bắt đầu
         if (this.primaryStage != null && this.startScene != null) {
@@ -174,6 +190,76 @@ public class Main extends Application implements GameNavigator {
 
         startGame();
     }
+
+    private void showScoreboardScreen() {
+        if (this.scoreboardScene == null) {
+            Pane scoreboardPane = new Pane();
+            scoreboardPane.setPrefSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            Canvas scoreboardCanvas = new Canvas(WINDOW_WIDTH, WINDOW_HEIGHT);
+            GraphicsContext sbgc = scoreboardCanvas.getGraphicsContext2D();
+
+            this.scoreboardScreen = new ScoreboardScreen(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+            scoreboardCanvas.setOnMouseMoved(e -> this.scoreboardScreen.handleMouseMove(e));
+            scoreboardCanvas.setOnMouseClicked(e -> {
+                ScoreboardAction action = this.scoreboardScreen.handleMouseClick(e);
+                if (action == ScoreboardAction.GOTO_MENU) {
+                    goToStartScreen();
+                }
+            });
+
+            // Tạo 1 vòng lặp render riêng cho Scoreboard để vẽ hover
+            this.scoreboardLoop = new AnimationTimer() {
+                @Override
+                public void handle(long now) {
+                    scoreboardScreen.render(sbgc);
+                }
+            };
+
+            scoreboardPane.getChildren().add(scoreboardCanvas);
+            this.scoreboardScene = new Scene(scoreboardPane);
+        }
+
+        this.primaryStage.setScene(this.scoreboardScene);
+        this.scoreboardScreen.reset();
+        this.scoreboardScreen.setNewScore(-1);
+        this.scoreboardLoop.start();
+    }
+
+    private void showHowToPlayScreen() {
+        if (this.howToPlayScene == null) {
+            Pane howToPlayPane = new Pane();
+            howToPlayPane.setPrefSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            Canvas howToPlayCanvas = new Canvas(WINDOW_WIDTH, WINDOW_HEIGHT);
+            GraphicsContext htpGC = howToPlayCanvas.getGraphicsContext2D();
+
+            this.howToPlayScreen = new HowToPlayScreen(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+            howToPlayCanvas.setOnMouseMoved(e -> this.howToPlayScreen.handleMouseMove(e));
+            howToPlayCanvas.setOnMouseClicked(e -> {
+                ScoreboardAction action = this.howToPlayScreen.handleMouseClick(e);
+                if (action == ScoreboardAction.GOTO_MENU) {
+                    goToStartScreen();
+                }
+            });
+
+            // Tạo 1 vòng lặp render riêng
+            this.howToPlayLoop = new AnimationTimer() {
+                @Override
+                public void handle(long now) {
+                    howToPlayScreen.render(htpGC);
+                }
+            };
+
+            howToPlayPane.getChildren().add(howToPlayCanvas);
+            this.howToPlayScene = new Scene(howToPlayPane);
+        }
+
+        this.primaryStage.setScene(this.howToPlayScene);
+        this.howToPlayScreen.reset();
+        this.howToPlayLoop.start();
+    }
+
 
     public static void main(String[] args) {
         launch(args);

@@ -19,8 +19,18 @@ public class ResourceManager {
     private static final String PADDLE_IMAGE_PATH = "/images/Paddle.png";
     private static final String LIFE_ICON_PATH = "/images/heart.png";
     private static final String POWERUP_PATH_PREFIX = "/images/PowerUp/";
+    private static final String START_BG_PATH = "/images/startbg.jpg";
+    private static final String HOWTOPLAY_BG_PATH = "/images/howtoplay.jpg";
+    private static final String HELP_ICON_PATH = "/images/questionicon.png";
+
+    private static final String GAME_BG_PREFIX = "/images/gamebg/";
+    private static final String GAME_BG_PATH = GAME_BG_PREFIX + "gamebg.jpg";
+    private static final String FRAME_TOP_PATH = GAME_BG_PREFIX + "frame_top.png";
+    private static final String FRAME_LEFT_PATH = GAME_BG_PREFIX + "frame_left.png";
+    private static final String FRAME_RIGHT_PATH = GAME_BG_PREFIX + "frame_right.png";
 
     private static final String METEOR_PATH_PREFIX = "/images/Meteor/";
+    private static final String LASER_IMAGE_PATH = "/images/laser.png";
 
     // Tài nguyên
     public static Font textFont;
@@ -30,6 +40,14 @@ public class ResourceManager {
 
     public static Image paddleImage;
     public static Image lifeIcon;
+    public static Image laserImage;
+    public static Image startScreenBackground;
+    public static Image howToPlayBackground;
+    public static Image helpIcon;
+    public static Image gameBackground;
+    public static Image frameTop;
+    public static Image frameLeft;
+    public static Image frameRight;
 
 
     private static final Map<PowerUpType, Image[]> powerUpAnimations = new EnumMap<>(PowerUpType.class);
@@ -84,22 +102,18 @@ public class ResourceManager {
             uiFont = Font.font("Arial", FontWeight.BOLD, 24);
         }
 
-        // Tải ảnh Paddle
-        try (InputStream imageStream = ResourceManager.class.getResourceAsStream(PADDLE_IMAGE_PATH)) {
-            if (imageStream == null) throw new Exception("Không tìm thấy ảnh: " + PADDLE_IMAGE_PATH);
-            paddleImage = new Image(imageStream);
-        } catch (Exception e) {
-            System.err.println("Lỗi tải ảnh Paddle: " + e.getMessage());
-        }
+        // --- Tải ảnh ---
+        paddleImage = loadImage(PADDLE_IMAGE_PATH);
+        lifeIcon = loadImage(LIFE_ICON_PATH, 40, 40);
+        startScreenBackground = loadImage(START_BG_PATH);
+        howToPlayBackground = loadImage(HOWTOPLAY_BG_PATH);
+        helpIcon = loadImage(HELP_ICON_PATH);
 
-        // Tải ảnh Máu
-        try (InputStream imageStream = ResourceManager.class.getResourceAsStream(LIFE_ICON_PATH)) {
-            if (imageStream == null) throw new Exception("Không tìm thấy ảnh: " + LIFE_ICON_PATH);
-            lifeIcon = new Image(imageStream, 40, 40, true, true);
-        } catch (Exception e) {
-            System.err.println("Lỗi tải ảnh Máu: " + e.getMessage());
-            lifeIcon = null;
-        }
+        gameBackground = loadImage(GAME_BG_PATH);
+        frameTop = loadImage(FRAME_TOP_PATH);
+        frameLeft = loadImage(FRAME_LEFT_PATH);
+        frameRight = loadImage(FRAME_RIGHT_PATH);
+        laserImage = loadImage(LASER_IMAGE_PATH);
 
         // --- ANIMATION POWER-UP ---
 
@@ -115,6 +129,8 @@ public class ResourceManager {
                 loadAnimation(POWERUP_PATH_PREFIX + "powerup_life_", 8));
 
         meteorAnimation = loadAnimation(METEOR_PATH_PREFIX + "meteor_", 5);
+        powerUpAnimations.put(PowerUpType.LASER,
+                loadAnimation(POWERUP_PATH_PREFIX + "powerup_laser_", 8));
     }
 
     private static Image[] loadAnimation(String basePath, int frameCount) {
@@ -142,6 +158,36 @@ public class ResourceManager {
 
         System.out.println("Tải thành công animation: " + basePath + " (" + frameCount + " frames)");
         return frames;
+    }
+
+    /**
+     * Tải ảnh không resize
+     */
+    private static Image loadImage(String path) {
+        try (InputStream stream = ResourceManager.class.getResourceAsStream(path)) {
+            if (stream == null) {
+                throw new Exception("Không tìm thấy ảnh: " + path);
+            }
+            return new Image(stream);
+        } catch (Exception e) {
+            System.err.println("Lỗi tải ảnh: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Tải ảnh có resize
+     */
+    private static Image loadImage(String path, double width, double height) {
+        try (InputStream stream = ResourceManager.class.getResourceAsStream(path)) {
+            if (stream == null) {
+                throw new Exception("Không tìm thấy ảnh: " + path);
+            }
+            return new Image(stream, width, height, true, true); // Resize
+        } catch (Exception e) {
+            System.err.println("Lỗi tải ảnh: " + e.getMessage());
+            return null;
+        }
     }
 
     public static Image[] getMeteorAnimation() {

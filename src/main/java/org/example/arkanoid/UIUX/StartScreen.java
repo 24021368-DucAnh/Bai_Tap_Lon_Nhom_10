@@ -1,14 +1,19 @@
 package org.example.arkanoid.UIUX;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
-
+import javafx.scene.Node;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.image.ImageView;
 import java.net.URL;
 
 public class StartScreen {
@@ -16,7 +21,6 @@ public class StartScreen {
     private final int screenWidth;
     private final int screenHeight;
 
-    private static final String BACKGROUND_IMAGE_PATH = "/images/startbg.jpg";
     private static final String BACKGROUND_MUSIC_PATH = "/sound/sound effect/Game Start.mp3";
 
     private MediaPlayer backgroundMusicPlayer;
@@ -24,7 +28,6 @@ public class StartScreen {
     public StartScreen(int width, int height) {
         this.screenWidth = width;
         this.screenHeight = height;
-        ResourceManager.loadAllResources();
         initializeMusic();
     }
 
@@ -61,24 +64,25 @@ public class StartScreen {
     /**
      * Tạo và trả về một Pane chứa tất cả các thành phần của màn hình bắt đầu.
      *  onStartGame Bắt đầu Game khi nút "Start Game" được nhấn.
+     *  onShowScoreBoard Hiện scoreboard đã có.
+     *  onShowHowToPlay Hiện cách chơi.
      * onExitGame Thoát chương trình khi nút "Exit" được nhấn.
      */
-    public Pane createContent(Runnable onStartGame, Runnable onExitGame) {
-        // Sử dụng VBox để căn giữa theo chiều dọc
-        VBox layout = new VBox(20); // 20 là khoảng cách giữa các thành phần
-        layout.setPrefSize(screenWidth, screenHeight);
-        layout.setAlignment(Pos.CENTER);
+    public Pane createContent(Runnable onStartGame, Runnable onShowScoreboard, Runnable onShowHowToPlay, Runnable onExitGame) {
+        StackPane rootPane = new StackPane();
+        rootPane.setPrefSize(screenWidth, screenHeight);
 
-        try {
-            String imageUrl = getClass().getResource(BACKGROUND_IMAGE_PATH).toExternalForm();
-            layout.setStyle(
-                    "-fx-background-image: url('" + imageUrl + "'); " +
-                            "-fx-background-size: cover; " + // 'cover' để ảnh phủ hết, 'contain' để vừa vặn
-                            "-fx-background-position: center center;"
-            );
-        } catch (Exception e) {
-            System.err.println("Không thể tải ảnh nền: " + e.getMessage() + ". Sử dụng màu đen.");
-            layout.setStyle("-fx-background-color: black;");
+        VBox centerLayout = new VBox(20); // 20 là khoảng cách giữa các thành phần
+        centerLayout.setAlignment(Pos.CENTER);
+
+        if (ResourceManager.startScreenBackground != null) {
+            ImageView backgroundView = new ImageView(ResourceManager.startScreenBackground);
+            backgroundView.setFitWidth(screenWidth);
+            backgroundView.setFitHeight(screenHeight);
+            rootPane.getChildren().add(backgroundView); // Thêm làm lớp dưới cùng
+        } else {
+            System.err.println("Không thể tải ảnh nền từ ResourceManager. Sử dụng màu đen.");
+            rootPane.setStyle("-fx-background-color: black;");
         }
 
         if (backgroundMusicPlayer != null) {
@@ -99,6 +103,13 @@ public class StartScreen {
             SoundEffectManager.playRoundStartSound();
         });
 
+        // --- Scoreboard ---
+        Button scoreboardButton = createStyledButton("Scoreboard");
+        scoreboardButton.setOnAction(e -> {
+            stopMusic();
+            onShowScoreboard.run();
+        });
+
         // Nút "Exit"
         Button exitButton = createStyledButton("Exit");
         exitButton.setOnAction(e -> {
@@ -107,11 +118,47 @@ public class StartScreen {
         });
 
         // Cho vào layout
-        layout.getChildren().addAll(title, startButton, exitButton);
+        centerLayout.getChildren().addAll(title, startButton, scoreboardButton, exitButton);
 
-        return layout;
+        Node howToPlayIcon = createHelpNode(onShowHowToPlay);
+
+        rootPane.getChildren().add(centerLayout);
+        StackPane.setAlignment(centerLayout, Pos.CENTER);
+
+        rootPane.getChildren().add(howToPlayIcon);
+        StackPane.setAlignment(howToPlayIcon, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(howToPlayIcon, new Insets(0, 20, 20, 0));
+        return rootPane;
     }
 
+    /**
+     * Tạo nút ?.
+     */
+    private Node createHelpNode(Runnable onShowHowToPlay) {
+        ImageView iconView = new ImageView(ResourceManager.helpIcon);
+
+        iconView.setFitWidth(125); // Đặt kích thước
+        iconView.setFitHeight(125);
+        iconView.setPreserveRatio(true);
+        iconView.setOpacity(0.8);
+        // Hiệu ứng
+        iconView.setOnMouseEntered(e -> {
+            iconView.setOpacity(1.0);
+            iconView.setScaleX(1.1);
+            iconView.setScaleY(1.1);
+        });
+        iconView.setOnMouseExited(e -> {
+            iconView.setOpacity(0.8);
+            iconView.setScaleX(1.0);
+            iconView.setScaleY(1.0);
+        });
+
+        iconView.setOnMouseClicked(e -> {
+            onShowHowToPlay.run();
+            SoundEffectManager.playHitSound();
+        });
+        return iconView;
+    }
     /**
      * Tạo Button
      */
