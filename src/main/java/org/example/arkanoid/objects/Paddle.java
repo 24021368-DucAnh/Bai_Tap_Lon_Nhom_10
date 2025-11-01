@@ -69,7 +69,7 @@ public class Paddle extends MovableObject {
             stopMoving();
         }
         // Cập nhật vị trí
-        x += dx * deltaTime;;
+        x += dx * deltaTime;
         y += dy;
 
         // Giới hạn paddle trong màn hình
@@ -122,7 +122,6 @@ public class Paddle extends MovableObject {
 
     @Override
     public void update(double deltaTime) {
-
         this.move(deltaTime);
 
         // --- THÊM LOGIC ĐẾM NGƯỢC POWER-UP ---
@@ -185,5 +184,8 @@ public class Paddle extends MovableObject {
         this.width = originalWidth;
         powerUpTimer = 0;
         laserTimer = 0;
+    }
+    public double getVelocityX() {
+        return this.dx;
     }
 }

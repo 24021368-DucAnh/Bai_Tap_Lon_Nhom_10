@@ -157,9 +157,11 @@ public class GameManager {
             ball.update(deltaTime);
 
             // 1. Va chạm Bóng và Paddle
-            if (ball.checkCollision(paddle)) {
+            if (!ball.isSticky && ball.checkCollision(paddle)) {
                 ball.bounceOff(paddle);
                 SoundEffectManager.playHitSound();
+            } else if (ball.isSticky) {
+                //Bóng đang dính nên không tính đây là va chạm
             }
 
             // 2. Va chạm Bóng và Gạch
@@ -457,7 +459,8 @@ public class GameManager {
         // Đặt bóng ngay trên paddle
         double initialBallY = paddle.getY() - 20;
 
-        Ball newBall = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this);
+        Ball newBall = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this, true);
+        newBall.setPaddle(paddle);
         this.balls.add(newBall);
     }
 
@@ -476,6 +479,7 @@ public class GameManager {
     public boolean isGameOver() {
         return this.currentState == GameState.GAME_OVER;
     }
+
     public void setGameOver() {
         this.currentState = GameState.GAME_OVER;
         if (this.gameOverScreen != null) { // Thêm kiểm tra an toàn
@@ -486,8 +490,6 @@ public class GameManager {
     }
 
     public void addBall() {
-        System.out.println("Kích hoạt ADD_BALL! Thêm 3 bóng!");
-
         // Vị trí spawn bóng (ngay trên giữa paddle)
         double spawnX = paddle.getX() + (paddle.getWidth() / 2.0);
         double spawnY = paddle.getY() - 20; // Hơi cao hơn paddle
@@ -530,10 +532,8 @@ public class GameManager {
 
 
     private void respawnBall() {
-        double initialBallX = paddle.getX() + (paddle.getWidth() / 2.0);
-        double initialBallY = paddle.getY() - 20;
-        Ball ball = new Ball(initialBallX, initialBallY, 20, 250.0, gameWidth, gameHeight, this);
-        this.balls.add(ball);
+        // Tái sử dụng logic tạo bóng mới dính trên paddle
+        spawnNewBall();
     }
 
     private void trySpawnMeteor(Brick destroyedBrick) {
@@ -579,12 +579,22 @@ public class GameManager {
                     return;
                 }
 
+        switch (currentState) {
+            case PLAYING:
                 // Chỉ xử lý di chuyển khi đang PLAYING
                 boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
                 if (code == KeyCode.A || code == KeyCode.LEFT) {
                     paddle.setMovingLeft(isPressed);
                 } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
                     paddle.setMovingRight(isPressed);
+                }
+                //Nhấn space để bóng bắt đầu bay
+                if (event.getEventType() == KeyEvent.KEY_PRESSED && event.getCode() == KeyCode.SPACE) {
+                    for (Ball ball : balls) {
+                        if (ball.isSticky) {
+                            ball.releaseFromPaddle(250); // lúc này bắt đầu bay lên với vận tốc 250
+                        }
+                    }
                 }
                 break;
 
@@ -618,6 +628,7 @@ public class GameManager {
                         quitScreen.setScore(this.score);
                         quitScreen.reset();
                         currentState = GameState.QUIT_MENU;
+                        quitScreen.reset();
                         break;
                 }
                 break;
