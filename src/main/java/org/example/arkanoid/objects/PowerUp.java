@@ -72,6 +72,7 @@ public class PowerUp extends MovableObject {
             case ADD_LIFE -> Color.LIGHTPINK;
             case ADD_BALL -> Color.LIGHTBLUE;
             case PADDLE_GROW -> Color.LIGHTGREEN;
+            case LASER -> Color.RED;
             default -> Color.YELLOW;
         };
     }

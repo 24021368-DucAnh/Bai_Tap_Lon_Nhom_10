@@ -30,6 +30,7 @@ public class ResourceManager {
     private static final String FRAME_RIGHT_PATH = GAME_BG_PREFIX + "frame_right.png";
 
     private static final String METEOR_PATH_PREFIX = "/images/Meteor/";
+    private static final String LASER_IMAGE_PATH = "/images/laser.png";
 
     // Tài nguyên
     public static Font textFont;
@@ -39,6 +40,7 @@ public class ResourceManager {
 
     public static Image paddleImage;
     public static Image lifeIcon;
+    public static Image laserImage;
     public static Image startScreenBackground;
     public static Image howToPlayBackground;
     public static Image helpIcon;
@@ -111,6 +113,7 @@ public class ResourceManager {
         frameTop = loadImage(FRAME_TOP_PATH);
         frameLeft = loadImage(FRAME_LEFT_PATH);
         frameRight = loadImage(FRAME_RIGHT_PATH);
+        laserImage = loadImage(LASER_IMAGE_PATH);
 
         // --- ANIMATION POWER-UP ---
 
@@ -126,6 +129,8 @@ public class ResourceManager {
                 loadAnimation(POWERUP_PATH_PREFIX + "powerup_life_", 8));
 
         meteorAnimation = loadAnimation(METEOR_PATH_PREFIX + "meteor_", 5);
+        powerUpAnimations.put(PowerUpType.LASER,
+                loadAnimation(POWERUP_PATH_PREFIX + "powerup_laser_", 8));
     }
 
     private static Image[] loadAnimation(String basePath, int frameCount) {

@@ -60,7 +60,7 @@ public class Main extends Application implements GameNavigator {
     private HowToPlayScreen howToPlayScreen;
     private ScoreboardScreen scoreboardScreen;
     private Scene scoreboardScene; // Scene cho scoreboard
-    private AnimationTimer scoreboardLoop; // Vòng lặp render cho scoreboard (vì nó có hover)
+    private AnimationTimer scoreboardLoop;
     private AnimationTimer howToPlayLoop;
 
     @Override
@@ -227,8 +227,7 @@ public class Main extends Application implements GameNavigator {
     }
 
     private void showHowToPlayScreen() {
-        // Chỉ tạo 1 lần
-        if (this.howToPlayScene == null) { // <-- SỬA LỖI 1: Dùng howToPlayScene
+        if (this.howToPlayScene == null) {
             Pane howToPlayPane = new Pane();
             howToPlayPane.setPrefSize(WINDOW_WIDTH, WINDOW_HEIGHT);
             Canvas howToPlayCanvas = new Canvas(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -236,12 +235,11 @@ public class Main extends Application implements GameNavigator {
 
             this.howToPlayScreen = new HowToPlayScreen(WINDOW_WIDTH, WINDOW_HEIGHT);
 
-            // Gắn sự kiện chuột
             howToPlayCanvas.setOnMouseMoved(e -> this.howToPlayScreen.handleMouseMove(e));
             howToPlayCanvas.setOnMouseClicked(e -> {
                 ScoreboardAction action = this.howToPlayScreen.handleMouseClick(e);
                 if (action == ScoreboardAction.GOTO_MENU) {
-                    goToStartScreen(); // Quay về menu
+                    goToStartScreen();
                 }
             });
 
@@ -254,10 +252,10 @@ public class Main extends Application implements GameNavigator {
             };
 
             howToPlayPane.getChildren().add(howToPlayCanvas);
-            this.howToPlayScene = new Scene(howToPlayPane); // <-- SỬA LỖI 2: Gán vào howToPlayScene
+            this.howToPlayScene = new Scene(howToPlayPane);
         }
 
-        this.primaryStage.setScene(this.howToPlayScene); // <-- SỬA LỖI 3: Dùng howToPlayScene
+        this.primaryStage.setScene(this.howToPlayScene);
         this.howToPlayScreen.reset();
         this.howToPlayLoop.start();
     }
