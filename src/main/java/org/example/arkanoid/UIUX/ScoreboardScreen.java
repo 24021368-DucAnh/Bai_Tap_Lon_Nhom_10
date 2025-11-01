@@ -23,7 +23,7 @@ public class ScoreboardScreen extends UIScreen{
         double btnWidth = 350;
         double btnHeight = 70;
         double btnX = (gameWidth - btnWidth) / 2.0;
-        double btnY = gameHeight - btnHeight - 200; // Cách đáy
+        double btnY = gameHeight - btnHeight - 100; // Cách đáy
         this.backButton = new Rectangle2D(btnX, btnY, btnWidth, btnHeight);
     }
 
@@ -35,7 +35,7 @@ public class ScoreboardScreen extends UIScreen{
     @Override
     public void render(GraphicsContext gc) {
         // Chỉ lưu điểm 1 lần
-        if (!hasSaved) {
+        if (!hasSaved && newScore > 0) {
             ScoreManager.addScore(newScore);
             hasSaved = true;
         }
@@ -67,27 +67,27 @@ public class ScoreboardScreen extends UIScreen{
             Long scoreInList = topScores.get(i);
 
             // Chỉ highlight nếu chưa được highlight
-            if (!alreadyHighlighted && scoreInList.equals(newScore)) {
+            if (newScore > 0 && !alreadyHighlighted && scoreInList.equals(newScore)) {
                 gc.setFill(Color.CYAN);
                 text += " (Your Score)";
                 alreadyHighlighted = true;
             }
 
             gc.fillText(text, gameWidth / 2.0, currentY);
-            currentY += 60;
+            currentY += 70;
             gc.setFill(Color.WHITE);
         }
 
         // Vẽ Điểm Vừa Lưu
         // Nếu điểm vừa lưu không có trong top 5, hiển thị nó ở dưới
-        if (!topScores.contains(newScore)) {
-            currentY += 40; // Thêm khoảng cách
+        if (newScore > 0 && !topScores.contains(newScore)) {
+            currentY += 25;
             gc.setFill(Color.CYAN);
             gc.fillText("Your Score: " + newScore, gameWidth / 2.0, currentY);
             gc.setFill(Color.WHITE);
         }
 
-        // Vẽ nút "Return to Menu"
+        // Vẽ nút Return to Menu
         gc.setFont(ResourceManager.buttonFont);
         if (hoverIndex == 0) {
             gc.setStroke(Color.CYAN);
