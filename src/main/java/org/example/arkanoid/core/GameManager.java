@@ -10,6 +10,7 @@ import javafx.scene.input.KeyCode;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 
 public class GameManager {
@@ -34,6 +35,16 @@ public class GameManager {
     private List<Ball> balls = new ArrayList<>();
     private List<Brick> bricks = new ArrayList<>();
     private PowerUpManager powerUpManager;
+
+    private List<Meteor> activeMeteors = new ArrayList<>();
+    private final Random random = new Random();
+    private static final int METEOR_SPAWN_CHANCE = 15;
+    private static final double METEOR_SPEED = 200.0;
+
+    private double shakeTimer = 0.0;
+    private double shakeIntensity = 0.0;
+    private double cameraOffsetX = 0.0;
+    private double cameraOffsetY = 0.0;
 
     private int currentStage = 1;
     private boolean isGameWon = false;
@@ -69,6 +80,7 @@ public class GameManager {
 
         //------ PowerUp ---------
         this.powerUpManager = new PowerUpManager();
+        this.activeMeteors.clear();
 
         //------ Pause Screen -----
         this.pauseScreen = new PauseScreen(gameWidth, gameHeight);
@@ -97,6 +109,20 @@ public class GameManager {
      * @param deltaTime
      */
     public void update(double deltaTime) {
+        if (shakeTimer > 0) {
+            shakeTimer -= deltaTime;
+            if (shakeTimer <= 0) {
+                // Hết giờ, trả camera về 0
+                shakeTimer = 0;
+                cameraOffsetX = 0;
+                cameraOffsetY = 0;
+            } else {
+                // Vẫn đang rung, tạo vị trí ngẫu nhiên
+                cameraOffsetX = (random.nextDouble() - 0.5) * 2 * shakeIntensity;
+                cameraOffsetY = (random.nextDouble() - 0.5) * 2 * shakeIntensity;
+            }
+        }
+
         if (currentState == GameState.PAUSED
                 || isGameWon
                 || currentState == GameState.GAME_OVER
@@ -149,6 +175,7 @@ public class GameManager {
 
                         if (isDestroyed) {
                             powerUpManager.trySpawnPowerUp(brick);
+                            trySpawnMeteor(brick);
                             brickWasDestroyed = true; // Đánh dấu là gạch này đã vỡ
                             long points = 100; // Thêm điểm
                             this.score += points;
@@ -173,6 +200,9 @@ public class GameManager {
         /** Xu ly mat bong */
         if (balls.isEmpty() && !isGameWon) {
             this.HP--; // Trừ mạng
+
+            triggerScreenShake(10.0, 0.3);
+
             System.out.println("Mất 1 mạng! Còn lại: " + this.HP);
             SoundEffectManager.playDeathSound();
 
@@ -186,6 +216,31 @@ public class GameManager {
 
         // Cập nhật tất cả các Power-up đang rơi
         powerUpManager.update(deltaTime, gameHeight, paddle);
+
+        Iterator<Meteor> meteorIter = activeMeteors.iterator();
+        while (meteorIter.hasNext()) {
+            Meteor meteor = meteorIter.next();
+            meteor.update(deltaTime);
+
+            // 1. Kiểm tra va chạm với Paddle
+            if (meteor.checkCollision(paddle)) {
+                this.HP--; // Trừ mạng
+                System.out.println("Bị thiên thạch đâm! Còn lại: " + this.HP);
+                SoundEffectManager.playDeathSound(); // Tạm dùng âm thanh mất mạng
+
+                meteorIter.remove(); // Xóa thiên thạch
+
+                // Kiểm tra game over ngay lập tức
+                if (this.HP <= 0) {
+                    setGameOver();
+                    System.out.println("GAME OVER (do thiên thạch)");
+                }
+            }
+            // 2. Kiểm tra nếu rơi ra khỏi màn hình
+            else if (meteor.isOffScreen(gameHeight)) {
+                meteorIter.remove();
+            }
+        }
 
         boolean stageComplete = true;
         if (bricks.isEmpty()) {
@@ -219,6 +274,10 @@ public class GameManager {
 
     public void render(GraphicsContext gc) {
         gc.clearRect(0, 0, gameWidth, gameHeight);
+
+        gc.save(); // Lưu trạng thái canvas (trước khi dịch chuyển)
+        gc.translate(cameraOffsetX, cameraOffsetY);
+
         // Vẽ paddle
         paddle.render(gc);
 
@@ -229,10 +288,16 @@ public class GameManager {
 
         powerUpManager.render(gc);
 
+        for (Meteor meteor : activeMeteors) {
+            meteor.render(gc);
+        }
+
         // Vẽ những viên gạch còn lại
         for (Brick brick : bricks) {
             BrickPainter.draw(gc, brick);
         }
+
+        gc.restore();
 
         // Vẽ các lớp UI
         switch (currentState) {
@@ -251,6 +316,11 @@ public class GameManager {
             case SCOREBOARD:
                 scoreboardScreen.render(gc);
         }
+    }
+
+    private void triggerScreenShake(double intensity, double duration) {
+        this.shakeIntensity = intensity;
+        this.shakeTimer = duration;
     }
 
     public void addHP() {
@@ -326,6 +396,7 @@ public class GameManager {
         //---------Ball-------------
         // Xóa hết bóng cũ
         this.balls.clear();
+        this.activeMeteors.clear();
         // Tạo một bóng mới ở giữa
         spawnNewBall();
     }
@@ -381,6 +452,18 @@ public class GameManager {
         double initialBallY = gameHeight / 2.0;
         Ball ball = new Ball(initialBallX, initialBallY, 20, 250.0, gameWidth, gameHeight, this);
         this.balls.add(ball);
+    }
+
+    private void trySpawnMeteor(Brick destroyedBrick) {
+        // Tỉ lệ rơi là METEOR_SPAWN_CHANCE (ví dụ: 15%)
+        if (random.nextInt(100) < METEOR_SPAWN_CHANCE) {
+            // Tạo ở trung tâm viên gạch
+            double spawnCenterX = destroyedBrick.getX() + (destroyedBrick.getWidth() / 2.0);
+            double spawnCenterY = destroyedBrick.getY() + (destroyedBrick.getHeight() / 2.0);
+
+            Meteor meteor = new Meteor(spawnCenterX, spawnCenterY, METEOR_SPEED);
+            activeMeteors.add(meteor);
+        }
     }
 
     public void handleKeyEvent(KeyEvent event) {
