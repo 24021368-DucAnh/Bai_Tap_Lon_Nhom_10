@@ -1,4 +1,5 @@
 package org.example.arkanoid.objects;
+
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.image.Image;
@@ -51,7 +52,9 @@ public class Paddle extends MovableObject {
 
     }*/
 
-    /** Di chuyen */
+    /**
+     * Di chuyen
+     */
     public void move(double deltaTime) {
         if (movingLeft && !movingRight) {
             moveLeft();
@@ -61,7 +64,8 @@ public class Paddle extends MovableObject {
             stopMoving();
         }
         // Cập nhật vị trí
-        x += dx * deltaTime;;
+        x += dx * deltaTime;
+        ;
         y += dy;
 
         // Giới hạn paddle trong màn hình
@@ -77,7 +81,7 @@ public class Paddle extends MovableObject {
             case PADDLE_GROW:
                 SoundEffectManager.playPaddlePowerupSound();
                 if (!isGrown) {
-                    this.width = (int)(this.width * 1.5);
+                    this.width = (int) (this.width * 1.5);
                     this.x = this.x - (this.width - originalWidth) / 2.0;
                     isGrown = true;
                 }
@@ -93,7 +97,7 @@ public class Paddle extends MovableObject {
 
             case ADD_LIFE:
                 // **GỌI HÀM CỦA GAMEMANAGER**
-                if(gameManager.getHp() < 3) {
+                if (gameManager.getHp() < 3) {
                     gameManager.addHP();
                     SoundEffectManager.playExtraLifeSound();
                 }
@@ -125,10 +129,16 @@ public class Paddle extends MovableObject {
     public double getInitialSpeed() {
         return initialSpeed;
     }
+
     public void setMovingLeft(boolean movingLeft) {
         this.movingLeft = movingLeft;
     }
+
     public void setMovingRight(boolean movingRight) {
         this.movingRight = movingRight;
+    }
+
+    public double getVelocityX() {
+        return this.dx;
     }
 }

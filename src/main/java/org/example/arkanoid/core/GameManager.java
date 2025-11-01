@@ -94,6 +94,7 @@ public class GameManager {
 
     /**
      * Update theo dt
+     *
      * @param deltaTime
      */
     public void update(double deltaTime) {
@@ -127,9 +128,11 @@ public class GameManager {
             ball.update(deltaTime);
 
             // 1. Va chạm Bóng và Paddle
-            if (ball.checkCollision(paddle)) {
+            if (!ball.isSticky && ball.checkCollision(paddle)) {
                 ball.bounceOff(paddle);
                 SoundEffectManager.playHitSound();
+            } else if (ball.isSticky) {
+                //Bóng đang dính nên không tính đây là va chạm
             }
 
             // 2. Va chạm Bóng và Gạch
@@ -336,7 +339,8 @@ public class GameManager {
         // Đặt bóng ngay trên paddle hoặc giữa màn hình
         double initialBallY = (paddle != null) ? paddle.getY() - BALL_DIAMETER : gameHeight / 2.0;
 
-        Ball newBall = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this);
+        Ball newBall = new Ball(initialBallX, initialBallY, BALL_DIAMETER, BALL_SPEED, gameWidth, gameHeight, this, true);
+        newBall.setPaddle(paddle);
         this.balls.add(newBall);
     }
 
@@ -355,6 +359,7 @@ public class GameManager {
     public boolean isGameOver() {
         return this.currentState == GameState.GAME_OVER;
     }
+
     public void setGameOver() {
         this.currentState = GameState.GAME_OVER;
         if (this.gameOverScreen != null) { // Thêm kiểm tra an toàn
@@ -367,18 +372,15 @@ public class GameManager {
         // Tạo bóng mới ở ngay trên paddle
         double newBallX = paddle.getX() + (paddle.getWidth() / 2.0);
         double newBallY = paddle.getY() - 20; // Hơi cao hơn paddle
-
-
-        Ball newBall = new Ball(newBallX, newBallY, 20, 250.0, gameWidth, gameHeight, this);
+        //Bóng được add khác với bóng ban đầu ở chỗ biến isSticky được gán fale --> Không dính với paddle
+        Ball newBall = new Ball(newBallX, newBallY, 20, 250.0, gameWidth, gameHeight, this, false);
         this.balls.add(newBall);
     }
 
 
     private void respawnBall() {
-        double initialBallX = gameWidth / 2.0;
-        double initialBallY = gameHeight / 2.0;
-        Ball ball = new Ball(initialBallX, initialBallY, 20, 250.0, gameWidth, gameHeight, this);
-        this.balls.add(ball);
+        // Tái sử dụng logic tạo bóng mới dính trên paddle
+        spawnNewBall();
     }
 
     public void handleKeyEvent(KeyEvent event) {
@@ -410,6 +412,14 @@ public class GameManager {
                     paddle.setMovingLeft(isPressed);
                 } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
                     paddle.setMovingRight(isPressed);
+                }
+                //Nhấn space để bóng bắt đầu bay
+                if (event.getEventType() == KeyEvent.KEY_PRESSED && event.getCode() == KeyCode.SPACE) {
+                    for (Ball ball : balls) {
+                        if (ball.isSticky) {
+                            ball.releaseFromPaddle(250); // lúc này bắt đầu bay lên với vận tốc 250
+                        }
+                    }
                 }
                 break;
 
