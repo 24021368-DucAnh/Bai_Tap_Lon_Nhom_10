@@ -519,7 +519,8 @@ public class GameManager {
                     TOTAL_SPEED, // (Giá trị này không còn quan trọng vì ta setVelocity ngay sau)
                     gameWidth,
                     gameHeight,
-                    this
+                    this,
+                    false
             );
 
             // Đặt vận tốc đã tính
@@ -576,23 +577,22 @@ public class GameManager {
                 if (event.getEventType() == KeyEvent.KEY_PRESSED && code == KeyCode.ESCAPE) {
                     currentState = GameState.PAUSED;
                     pauseScreen.reset();
-                    return;
+                    return; // Thoát khỏi hàm ngay lập tức
                 }
 
-        switch (currentState) {
-            case PLAYING:
-                // Chỉ xử lý di chuyển khi đang PLAYING
+                // Xử lý di chuyển
                 boolean isPressed = event.getEventType() == KeyEvent.KEY_PRESSED;
                 if (code == KeyCode.A || code == KeyCode.LEFT) {
                     paddle.setMovingLeft(isPressed);
                 } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
                     paddle.setMovingRight(isPressed);
                 }
-                //Nhấn space để bóng bắt đầu bay
+
+                // Xử lý phím Space (bắn bóng)
                 if (event.getEventType() == KeyEvent.KEY_PRESSED && event.getCode() == KeyCode.SPACE) {
                     for (Ball ball : balls) {
                         if (ball.isSticky) {
-                            ball.releaseFromPaddle(250); // lúc này bắt đầu bay lên với vận tốc 250
+                            ball.releaseFromPaddle(250);
                         }
                     }
                 }
@@ -604,12 +604,13 @@ public class GameManager {
                     currentState = GameState.PLAYING;
                 }
                 break;
+
             case GAME_OVER:
             case STAGE_TRANSITION:
             case QUIT_MENU:
             case SCOREBOARD:
             default:
-                break; // Không làm gì cả
+                break;
         }
     }
 
