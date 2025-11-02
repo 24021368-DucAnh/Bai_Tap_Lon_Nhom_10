@@ -8,6 +8,7 @@ Game không chỉ tái hiện lối chơi gốc mà còn bổ sung nhiều tính
 ---
 **Demo 1: Gameplay cơ bản & Power-up*
 
+![Gameplay Demo 1](src/main/resources/Gif/gif1.gif)
 
 **Demo 2: Bắn Laser & Hiệu ứng**
 
