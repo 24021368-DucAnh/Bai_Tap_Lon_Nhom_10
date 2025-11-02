@@ -6,15 +6,16 @@
 Game không chỉ tái hiện lối chơi gốc mà còn bổ sung nhiều tính năng nâng cao như một chiến dịch (campaign) 32 màn chơi, trận đấu trùm (boss fight) kịch tính, hệ thống vật phẩm (power-up) đa dạng, và các hiệu ứng "game feel" hiện đại.
 
 ---
-**Demo 1: Gameplay cơ bản & Power-up*
+
+**Demo 1: Game play cơ bản**
 
 ![Gameplay Demo 1](src/main/resources/Gif/gif1.gif)
 
-**Demo 2: Bắn Laser & Hiệu ứng**
+**Demo 2: Power Up & Bắn Laser**
 
 ![Gameplay Demo 2](src/main/resources/Gif/gif2.gif)
 
-**Demo 3: Trận đấu trùm (Boss Fight)**
+**Demo 3: Trận đấu trùm**
 
 ![Gameplay Demo 3](src/main/resources/Gif/gif3.gif)
 
