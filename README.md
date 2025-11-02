@@ -132,3 +132,7 @@ Dự án được thiết kế theo các nguyên tắc OOP (Đóng gói, Kế th
 | **Tuần 7** | **Hoàn thiện Tính năng (Features)** | **(Lead) Hoàn thiện UI:** <br> • `PauseScreen`, `GameOverScreen`. <br> • `GameUI` (HUD) hoàn chỉnh (điểm, mạng). | **Hệ thống Power-up (Phần 2):** <br> • Cập nhật logic HP gạch (`Brick HP update`). <br> • Thêm animation rơi cho `PowerUp`. <br> • Thêm ảnh Power-up vào `ResourceManager`. | **(Lead) Logic Power-up (Phần 2):** <br> • Cài đặt 3 Power-up chính: **`ADD_LIFE`**, **`ADD_BALL`**, **`PADDLE_GROW`**. | **Logic Game Nâng cao:** <br> • Cập nhật logic quản lý Điểm/Mạng (từ `GameManager`). <br> • Cập nhật logic `addHP` và Game Over. |
 | | | | | | |
 | **Tuần 8** | **Tính năng Nâng cao & Hoàn thiện (Polish)** | **(Lead) Hoàn thiện Hệ thống:** <br> • `Scoreboard` (lưu 5 điểm). <br> • `StageClearScreen`, `HowToPlayScreen`. <br> • Tích hợp & Merge code toàn nhóm. | **(Lead) Boss & Hiệu ứng:** <br> • Cài đặt **`Meteor`** (hazard). <br> • Cài đặt **`BossBrick`** (thả Meteor, thả Power-up). <br> • Cài đặt **`Screen Shake`**. | **Tính năng Nâng cao & Kiểm thử:** <br> • Cài đặt Power-up **`Laser`**. <br> • Viết **JUnit Tests** cho dự án. | **Logic Cốt lõi Nâng cao:** <br> • Nâng cấp logic va chạm Ball/Paddle (bóng dính `isSticky`). |
+
+## UML
+
+![UML](src/main/resources/Gif/UML.png)
