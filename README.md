@@ -7,12 +7,15 @@ Game không chỉ tái hiện lối chơi gốc mà còn bổ sung nhiều tính
 
 ---
 **Demo 1: Gameplay cơ bản & Power-up**
+
 ![Gameplay Demo 1](src/main/resources/Gif/gif1.gif)
 
 **Demo 2: Bắn Laser & Hiệu ứng**
+
 ![Gameplay Demo 2](src/main/resources/Gif/gif2.gif)
 
 **Demo 3: Trận đấu trùm (Boss Fight)**
+
 ![Gameplay Demo 3](src/main/resources/Gif/gif3.gif)
 
 ---
