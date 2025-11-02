@@ -1,5 +1,7 @@
 package org.example.arkanoid.objects;
 
+import org.example.arkanoid.core.GameManager;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +42,7 @@ public final class StageLoader {
      * @param canvasW Chiều rộng của khu vực game (ví dụ: 800).
      * @return Một danh sách các đối tượng Brick đã được tạo và đặt đúng vị trí.
      */
-    public static List<Brick> loadFromIndex(int index, double canvasW) {
+    public static List<Brick> loadFromIndex(int index, double canvasW, GameManager gameManager) {
         String stageFileName = PREFIX + index + EXT;
         List<Brick> bricks = new ArrayList<>();
 
@@ -83,7 +85,7 @@ public final class StageLoader {
                     double y = topMargin + (r * BRICK_HEIGHT);
 
                     // Dùng "nhà máy" BrickFactory để tạo ra đúng loại gạch
-                    Brick brick = BrickFactory.fromCode(brickCode, x, y, (int) BRICK_WIDTH, (int) BRICK_HEIGHT, index);
+                    Brick brick = BrickFactory.fromCode(brickCode, x, y, (int) BRICK_WIDTH, (int) BRICK_HEIGHT, index, gameManager);
 
                     // Gán mã skin để BrickPainter biết vẽ ảnh nào (dù không cần thiết vì Factory đã làm)
                     brick.setSkinCode(brickCode);

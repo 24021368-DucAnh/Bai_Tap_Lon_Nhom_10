@@ -89,6 +89,34 @@ public class PowerUpManager {
         }
     }
 
+    public void spawnRandomPowerUpAt(double spawnX, double spawnY) {
+        // 1. Chọn ngẫu nhiên một loại power-up
+        PowerUpType[] allTypes = PowerUpType.values();
+        PowerUpType randomType;
+
+        // Logic thông minh: Nếu người chơi đang đầy máu (giả sử 3 là max)
+        if (gameManager.getHp() >= 3) {
+            // Lặp cho đến khi chọn được một power-up KHÔNG PHẢI là ADD_LIFE
+            do {
+                randomType = allTypes[random.nextInt(allTypes.length)];
+            } while (randomType == PowerUpType.ADD_LIFE);
+        } else {
+            // Nếu chưa đầy máu, chọn ngẫu nhiên như bình thường
+            randomType = allTypes[random.nextInt(allTypes.length)];
+        }
+
+        // 2. Tạo đối tượng PowerUp
+        PowerUp newPowerUp = new PowerUp(spawnX, spawnY, randomType);
+
+        // 3. Căn giữa PowerUp (vì constructor PowerUp nhận tâm, nhưng sau đó
+        //    nó tự lấy W/H từ ảnh, ta cần căn lại)
+        newPowerUp.setX(spawnX - (newPowerUp.getWidth() / 2.0));
+        newPowerUp.setY(spawnY - (newPowerUp.getHeight() / 2.0));
+
+        // 4. Thêm vào danh sách
+        activePowerUps.add(newPowerUp);
+    }
+
     public void clearPowerUps() {
         activePowerUps.clear();
     }

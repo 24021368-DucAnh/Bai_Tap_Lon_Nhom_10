@@ -7,6 +7,7 @@ import javafx.scene.input.MouseEvent;
 import org.example.arkanoid.UIUX.*;
 import org.example.arkanoid.objects.*;
 import javafx.scene.input.KeyCode;
+import org.example.arkanoid.objects.Meteor;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -151,6 +152,10 @@ public class GameManager {
 
         paddle.update(deltaTime);
         // Dùng Iterator để có thể xóa bóng khi nó rơi ra ngoài
+        for (Brick brick : bricks) {
+            brick.update(deltaTime);
+        }
+
         Iterator<Ball> ballIterator = balls.iterator();
         while (ballIterator.hasNext()) {
             Ball ball = ballIterator.next();
@@ -403,8 +408,7 @@ public class GameManager {
         this.currentStage = stageIndex;
         System.out.println("Đang tải màn chơi: " + stageIndex);
 
-        // Tải gạch cho màn mới
-        this.bricks = StageLoader.loadFromIndex(stageIndex, this.gameWidth);
+        this.bricks = StageLoader.loadFromIndex(stageIndex, this.gameWidth, this);
 
         if (this.bricks == null || this.bricks.isEmpty()) {
             // Nếu StageLoader trả về null hoặc rỗng (lỗi hoặc hết màn)
@@ -566,6 +570,24 @@ public class GameManager {
 
         activeLasers.add(new Laser(spawnX1, spawnY));
         activeLasers.add(new Laser(spawnX2, spawnY));
+    }
+
+    /**
+     * Được gọi bởi BossBrick, tạo thiên thạch tại một vị trí
+     * @param spawnCenterX Vị trí X (trung tâm)
+     * @param spawnCenterY Vị trí Y (nơi spawn)
+     */
+    public void spawnMeteorAt(double spawnCenterX, double spawnCenterY) {
+        // Constructor của Meteor (spawnCenterX, spawnCenterY, speed)
+        Meteor meteor = new Meteor(spawnCenterX, spawnCenterY, METEOR_SPEED);
+        activeMeteors.add(meteor);
+    }
+
+    public void spawnRandomPowerUpAt(double spawnX, double spawnY) {
+        // Chỉ cần gọi PowerUpManager
+        if (powerUpManager != null) {
+            powerUpManager.spawnRandomPowerUpAt(spawnX, spawnY);
+        }
     }
 
     public void handleKeyEvent(KeyEvent event) {

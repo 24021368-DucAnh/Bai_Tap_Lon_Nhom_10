@@ -9,15 +9,22 @@ public final class BrickPainter {
     private BrickPainter(){}
 
     public static void draw(GraphicsContext g, Brick b) {
-        // Silver?
+        // Silver
         if (b instanceof SilverBrick silver) {
             if (drawStrip(g, BrickSkinRegistry.silverStrip(), b.getX(), b.getY(), b.getWidth(), b.getHeight(), silver.getFrameIndex(), 6)) {
                 return;
             }
         }
-        // Gold?
+        // Gold
         if (b instanceof GoldBrick gold) {
             if (drawStrip(g, BrickSkinRegistry.goldStrip(), b.getX(), b.getY(), b.getWidth(), b.getHeight(), gold.getFrameIndex(), gold.getFrameCount())) {
+                return;
+            }
+        }
+        if (b instanceof BossBrick) {
+            Image img = BrickSkinRegistry.bossImage();
+            if (img != null) {
+                g.drawImage(img, b.getX(), b.getY(), b.getWidth(), b.getHeight());
                 return;
             }
         }
