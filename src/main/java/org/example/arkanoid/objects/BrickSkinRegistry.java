@@ -18,6 +18,7 @@ public final class BrickSkinRegistry {
 
     // gold strip (N frame, ví dụ 12)
     private static Image GOLD_STRIP;
+    private static Image BOSS_IMAGE;
 
     public static void initDefaults() {
         // NORMAL colors (đổi theo tên file của bạn)
@@ -33,6 +34,7 @@ public final class BrickSkinRegistry {
         // STRIP images (đổi tên file khớp sprite-sheet của bạn)
         SILVER_STRIP = img("/images/bricks/silver_strip.png"); // chứa 6 frame ngang
         GOLD_STRIP   = img("/images/bricks/gold_strip.png");   // chứa N frame ngang
+        BOSS_IMAGE   = img("/images/bricks/bossBrick.png");
     }
 
     public static Image colorImage(char code) {
@@ -41,6 +43,7 @@ public final class BrickSkinRegistry {
 
     public static Image silverStrip() { return SILVER_STRIP; }
     public static Image goldStrip()   { return GOLD_STRIP; }
+    public static Image bossImage() { return BOSS_IMAGE; }
 
     private static Image img(String path) {
         var url = BrickSkinRegistry.class.getResource(path);
