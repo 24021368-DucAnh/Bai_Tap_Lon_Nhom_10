@@ -6,7 +6,7 @@
 Game không chỉ tái hiện lối chơi gốc mà còn bổ sung nhiều tính năng nâng cao như một chiến dịch (campaign) 32 màn chơi, trận đấu trùm (boss fight) kịch tính, hệ thống vật phẩm (power-up) đa dạng, và các hiệu ứng "game feel" hiện đại.
 
 ---
-**Demo 1: Gameplay cơ bản & Power-up**
+**Demo 1: Gameplay cơ bản & Power-up*
 
 ![Gameplay Demo 1](src/main/resources/Gif/gif1.gif)
 
